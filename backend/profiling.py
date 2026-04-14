@@ -1,6 +1,6 @@
 from pathlib import Path
 import pandas as pd
-from data_loader import load_match_data, load_rankings_data
+from data_loader import load_all_structured_data
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = BASE_DIR / "outputs" / "csv_profile_outputs"
@@ -8,67 +8,53 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 def profile_dataframe(df: pd.DataFrame, name: str):
     print(f"\n===== {name} =====")
-    print("Shape (rows, columns):", df.shape)
 
-    print("\nColumn names:")
+    print("Shape:", df.shape)
+
+    print("\nColumns:")
     print(list(df.columns))
 
     print("\nMissing values:")
     print(df.isnull().sum())
 
-    print("\nFirst 5 rows:")
+    print("\nSample rows:")
     print(df.head())
 
     summary = pd.DataFrame({
         "column_name": df.columns,
         "dtype": [str(df[col].dtype) for col in df.columns],
         "missing_values": [df[col].isnull().sum() for col in df.columns],
-        "sample_value": [
-            str(df[col].dropna().iloc[0]) if not df[col].dropna().empty else ""
-            for col in df.columns
-        ]
     })
 
-    summary.to_excel(OUTPUT_DIR / f"{name}_column_summary.xlsx", index=False)
+    summary.to_excel(OUTPUT_DIR / f"{name}_summary.xlsx", index=False)
 
-def basic_match_analysis(df: pd.DataFrame, name: str):
-    print(f"\n===== Basic Match Analysis: {name} =====")
 
-    if "surface_category" in df.columns:
-        print("\nMatches by surface:")
-        print(df["surface_category"].value_counts(dropna=False))
+def smart_basic_analysis(df: pd.DataFrame):
+    print("\n--- Smart Analysis ---")
 
-    if "win_loss_status" in df.columns:
-        print("\nWins vs Losses:")
-        print(df["win_loss_status"].value_counts(dropna=False))
+    for col in df.columns:
+        try:
+            # Text columns
+            if df[col].dtype == "object":
+                print(f"\nTop values in {col}:")
+                print(df[col].value_counts().head(5))
 
-    if "event_name" in df.columns:
-        print("\nTop tournaments:")
-        print(df["event_name"].value_counts().head(10))
+            # Numeric columns
+            else:
+                print(f"\nStats for {col}:")
+                print(df[col].describe())
 
-def basic_rankings_analysis(df: pd.DataFrame):
-    print("\n===== Basic Rankings Analysis =====")
+        except:
+            print(f"Skipping column {col}")
 
-    if "player_name" in df.columns:
-        print("\nUnique players:")
-        print(df["player_name"].nunique())
-
-    if "ranking" in df.columns:
-        print("\nRanking statistics:")
-        print(df["ranking"].describe())
 
 def main():
-    match1, match2 = load_match_data()
-    rankings = load_rankings_data()
+    datasets = load_all_structured_data()
 
-    profile_dataframe(match1, "match_data_1")
-    basic_match_analysis(match1, "match_data_1")
+    for name, df in datasets.items():
+        profile_dataframe(df, name)
+        smart_basic_analysis(df)
 
-    profile_dataframe(match2, "match_data_2")
-    basic_match_analysis(match2, "match_data_2")
-
-    profile_dataframe(rankings, "rankings")
-    basic_rankings_analysis(rankings)
 
 if __name__ == "__main__":
     main()
