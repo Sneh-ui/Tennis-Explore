@@ -1,0 +1,5 @@
+export { default as DashboardPage } from './dashboard'
+export { default as DataPortalPage } from './data-portal'
+export { default as MediaLibraryPage } from './media-library'
+export { default as AIChatbotPage } from './ai-chatbot'
+export { default as ArchivePage } from './archive'
