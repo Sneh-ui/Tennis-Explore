@@ -1,4 +1,5 @@
 export { default as DashboardPage } from './dashboard'
+export { default as TennisExploreHero } from './TennisExploreHero'
 export { default as DataPortalPage } from './data-portal'
 export { default as MediaLibraryPage } from './media-library'
 export { default as AIChatbotPage } from './ai-chatbot'

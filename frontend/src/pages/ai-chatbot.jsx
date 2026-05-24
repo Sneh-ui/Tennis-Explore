@@ -123,7 +123,7 @@ export default function AIChatbotPage() {
       { role: 'user', content: input },
       {
         role: 'ai',
-        content: "I'm analyzing the data you requested. This is a demo response — in production, this would connect to the CourtAI analytics engine for real-time insights.",
+        content: "I'm analyzing the data you requested. This is a demo response — in production, this would connect to the analytics engine for real-time insights.",
       },
     ])
     setInput('')

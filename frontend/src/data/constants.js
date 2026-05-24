@@ -2,7 +2,7 @@ export const PROFILE_IMG =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuDw26tQxMLFKea_DMVHSGhmH6yYNHHMOn97-n-tyjTXty1kn8qbRuW3QztbkwYJ8rUg0BZHP8RxbnhsCbg4WKvzkRxXRqHFz0glIkvwBQeZiv9K-I-cPIWa0kzAXmT93xTMaxUlxrV3o17EKRXvDVRHa63CYjbJgk_iVn1O7zzV_4Hz7hqwJC0F3iIOD11W_YOXyAUBwdHWSPQF5G3GoMiI1zG4s06t_DIOf27zAcSXh4YWtHGOC80P1ghHd9l63jcmlHXLiaFkhw'
 
 export const NAV_ITEMS = [
-  { id: 'dashboard', icon: 'dashboard', label: 'Dashboard', path: '/' },
+  { id: 'dashboard', icon: 'dashboard', label: 'Dashboard', path: '/dashboard' },
   { id: 'data-portal', icon: 'analytics', label: 'Data Portal', path: '/data-portal' },
   { id: 'media-library', icon: 'video_library', label: 'Media Library', path: '/media-library' },
   { id: 'ai-chatbot', icon: 'psychology', label: 'AI Insights', path: '/ai-chatbot' },
