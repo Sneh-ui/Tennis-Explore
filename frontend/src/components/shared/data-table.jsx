@@ -12,7 +12,7 @@ export function DataTable({ columns, data, currentPage = 1, totalItems = 0, onPa
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-te-outline-variant bg-te-surface-container-low">
-              {columns.map((col, i) => (
+              {columns.map((col) => (
                 <th
                   key={col.key}
                   className={cn(

@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
-import { Icon, ProgressBar } from '@/components/shared'
+import { Icon } from '@/components/shared'
 import { INITIAL_MESSAGES, CHAT_SUGGESTIONS } from '@/data/constants'
+import { consumePendingQuery } from '@/lib/pending-query'
 import { cn } from '@/lib/utils'
 
 function ChatMessage({ msg }) {
@@ -108,9 +108,21 @@ function SuggestionsPanel() {
 }
 
 export default function AIChatbotPage() {
+  const location = useLocation()
   const [messages, setMessages] = useState(INITIAL_MESSAGES)
   const [input, setInput] = useState('')
   const messagesEndRef = useRef(null)
+
+  useEffect(() => {
+    const routedQuery = location.state?.query
+    if (routedQuery) {
+      setInput(routedQuery)
+      return
+    }
+    consumePendingQuery().then((pending) => {
+      if (pending) setInput((prev) => prev || pending)
+    })
+  }, [location.state])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })

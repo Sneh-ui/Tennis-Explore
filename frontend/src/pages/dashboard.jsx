@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Card, CardTitle } from '@/components/ui/card'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Icon, StatCard, ProgressBar, PageHeader } from '@/components/shared'
 import { DASHBOARD_STATS, WIN_RATES, RECENT_VIDEOS, RECENT_QUERIES } from '@/data/constants'

@@ -4,7 +4,6 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Card } from '@/components/ui/card'
 import { Icon, PageHeader, DataTable, InsightCard } from '@/components/shared'
 import { MATCH_DATA, DATA_PORTAL_FILTERS, DATA_PORTAL_INSIGHTS } from '@/data/constants'
-import { cn } from '@/lib/utils'
 
 function FilterBar() {
   return (

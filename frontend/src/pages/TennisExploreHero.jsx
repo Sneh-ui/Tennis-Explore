@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom"
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom"
+import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import { useAuth } from "@/hooks/use-auth";
+import { savePendingQuery } from "@/lib/pending-query";
 
 /* ─────────────────────────── DATA ─────────────────────────── */
 const APPS = [
@@ -126,6 +128,25 @@ function HintPill({ label, index }) {
 /* ─────────────────────────── SEARCH BAR ───────────────────── */
 function SearchBar() {
   const [focused, setFocused] = useState(false);
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleSend = async () => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    if (user) {
+      navigate("/ai-chatbot", { state: { query: trimmed } });
+    } else {
+      await savePendingQuery(trimmed);
+      navigate("/login");
+    }
+    setQuery("");
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") handleSend();
+  };
 
   return (
     <motion.div
@@ -158,35 +179,19 @@ function SearchBar() {
           border: "1px solid rgba(255, 255, 255, 0.1)",
         }}
       >
-        {/* Add button */}
-        <motion.div
-          whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-          className="p-3 rounded-full flex items-center justify-center cursor-pointer"
-          style={{
-            background: "rgba(18, 20, 28, 0.6)",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255, 255, 255, 0.05)",
-          }}
-        >
-          <Icon name="add" className="text-[#c2caae]" />
-        </motion.div>
-
         <input
-          className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-[#c2caae]/50 py-4"
+          className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-[#c2caae]/50 py-4 pl-6 pr-3"
           style={{ fontFamily: "Inter", fontSize: 18, lineHeight: "28px" }}
           placeholder="Ask anything about tennis..."
           type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
         />
 
-        <div className="flex items-center gap-2 pr-2">
-          <motion.button
-            whileHover={{ color: "#ffffff" }}
-            className="p-3 text-[#c2caae] transition-colors"
-          >
-            <Icon name="image" />
-          </motion.button>
+        <div className="flex items-center gap-1 pr-1">
           <motion.button
             whileHover={{ color: "#ffffff" }}
             className="p-3 text-[#c2caae] transition-colors"
@@ -196,6 +201,7 @@ function SearchBar() {
           <motion.button
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.92 }}
+            onClick={handleSend}
             className="w-14 h-14 rounded-full flex items-center justify-center"
             style={{
               backgroundColor: "#b0f820",
@@ -212,6 +218,8 @@ function SearchBar() {
 
 /* ─────────────────────────── HEADER ───────────────────────── */
 function Header() {
+  const { user } = useAuth();
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -266,23 +274,25 @@ function Header() {
           className="hidden md:flex items-center gap-8 uppercase tracking-[0.15em] text-[#c2caae]"
           style={{ fontFamily: "Inter", fontSize: 12, fontWeight: 600, letterSpacing: "0.05em" }}
         >
-          <motion.div whileHover={{ color: "#b0f820" }}>
-  <Link
-    to="/dashboard"
-    className="cursor-pointer transition-colors"
-  >
-    Dashboard
-  </Link>
-</motion.div>
-
-<motion.div whileHover={{ color: "#b0f820" }}>
-  <Link
-    to="/login"
-    className="cursor-pointer transition-colors"
-  >
-    Login
-  </Link>
-</motion.div>
+          {user ? (
+            <motion.div whileHover={{ color: "#b0f820" }}>
+              <Link
+                to="/dashboard"
+                className="cursor-pointer transition-colors"
+              >
+                Dashboard
+              </Link>
+            </motion.div>
+          ) : (
+            <motion.div whileHover={{ color: "#b0f820" }}>
+              <Link
+                to="/login"
+                className="cursor-pointer transition-colors"
+              >
+                Login
+              </Link>
+            </motion.div>
+          )}
         </nav>
         <motion.div
           whileHover={{ scale: 1.1 }}
