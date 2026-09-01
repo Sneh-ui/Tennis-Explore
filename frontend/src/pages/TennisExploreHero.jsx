@@ -6,13 +6,49 @@ import { savePendingQuery } from "@/lib/pending-query";
 
 /* ─────────────────────────── DATA ─────────────────────────── */
 const APPS = [
-  { icon: "groups", label: "Teamworks" },
-  { icon: "analytics", label: "AMS" },
-  { icon: "fitness_center", label: "Teambuildr" },
-  { icon: "sports_tennis", label: "Bounce", filled: true, bold: true },
-  { icon: "strategy", label: "Coaches Box" },
-  { icon: "directions_run", label: "TennisMove" },
-  { icon: "workspace_premium", label: "ACE" },
+  {
+    icon: "groups",
+    label: "Teamworks",
+    url: "https://teamworksapp.com/login-portal"
+  },
+
+  {
+    icon: "analytics",
+    label: "AMS",
+    url: "https://ams.ausport.gov.au"
+  },
+
+  {
+    icon: "fitness_center",
+    label: "Teambuildr",
+    url: "https://app-v3.teambuildr.com/login"
+  },
+
+  {
+    icon: "sports_tennis",
+    label: "Bounce",
+    url: "https://bounce.tennis.com.au/login/",
+    filled: true,
+    bold: true
+  },
+
+  {
+    icon: "strategy",
+    label: "Coaches Box",
+    url: "https://players.ausopen.com"
+  },
+
+  {
+    icon: "directions_run",
+    label: "TennisMove",
+    url: null
+  },
+
+  {
+    icon: "workspace_premium",
+    label: "ACE",
+    url: "http://www.acetennisaustralia.com/"
+  },
 ];
 
 const HINTS = [
@@ -74,29 +110,53 @@ function CursorGlow() {
 }
 
 /* ─────────────────────────── GLASS CARD (APP) ─────────────── */
-function AppCard({ icon, label, filled, bold, index }) {
+function AppCard({ icon, label, filled, bold, index, url }) {
   return (
-    <motion.div
+    <motion.a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
       initial={{ opacity: 0, x: -40 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.8 + index * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ x: 8, backgroundColor: "rgba(18, 20, 28, 0.8)", borderColor: "rgba(176, 248, 32, 0.3)" }}
+      transition={{
+        delay: 0.8 + index * 0.08,
+        duration: 0.5,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      whileHover={{
+        x: 8,
+        backgroundColor: "rgba(18, 20, 28, 0.8)",
+        borderColor: "rgba(176, 248, 32, 0.3)",
+      }}
       className="flex items-center gap-4 px-5 py-3 rounded-xl cursor-pointer"
       style={{
         background: "rgba(18, 20, 28, 0.6)",
         backdropFilter: "blur(20px)",
         border: "1px solid rgba(255, 255, 255, 0.05)",
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        textDecoration: "none",
       }}
     >
-      <Icon name={icon} filled={filled} className="text-[#b0f820]" />
+      <Icon
+        name={icon}
+        filled={filled}
+        className="text-[#b0f820]"
+      />
+
       <span
-        className={`text-xs uppercase tracking-wider text-white ${bold ? "font-bold" : ""}`}
-        style={{ fontFamily: "Inter", letterSpacing: "0.05em", fontWeight: bold ? 700 : 600, fontSize: 12 }}
+        className={`text-xs uppercase tracking-wider text-white ${
+          bold ? "font-bold" : ""
+        }`}
+        style={{
+          fontFamily: "Inter",
+          letterSpacing: "0.05em",
+          fontWeight: bold ? 700 : 600,
+          fontSize: 12,
+        }}
       >
         {label}
       </span>
-    </motion.div>
+    </motion.a>
   );
 }
 
@@ -448,8 +508,16 @@ const TennisExploreHero = ()=> {
           </motion.div>
 
           <div className="flex flex-col gap-3 max-w-[240px]">
-            {APPS.map((app, i) => (
-              <AppCard key={app.label} index={i} {...app} />
+            {APPS.map((app, index) => (
+              <AppCard
+                key={app.label}
+                icon={app.icon}
+                label={app.label}
+                filled={app.filled}
+                bold={app.bold}
+                url={app.url}
+                index={index}
+              />
             ))}
           </div>
         </div>
