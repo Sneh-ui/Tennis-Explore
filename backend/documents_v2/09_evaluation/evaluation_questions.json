@@ -1,0 +1,78 @@
+[
+  {
+    "id": "P01",
+    "question": "How does Shapovalov recover after the return when moving to a short ball?",
+    "expected_source": "lester-ao-performance-science-insights-round-2.pptx",
+    "expected_slide": 3,
+    "should_refuse": false
+  },
+  {
+    "id": "P02",
+    "question": "What technique helps Muguruza maintain strength and balance when attacking a short ball?",
+    "expected_source": "lester-ao-performance-science-insights-round-2.pptx",
+    "expected_slide": 4,
+    "should_refuse": false
+  },
+  {
+    "id": "P03",
+    "question": "What percentage of games did Serena win when she made two errors in a game?",
+    "expected_source": "ao-performance-science-insights-round-3.pptx",
+    "expected_slide": 5,
+    "should_refuse": false
+  },
+  {
+    "id": "P04",
+    "question": "Who recorded the highest number of sprint efforts in the men's Round 3 leaderboard?",
+    "expected_source": "ao-performance-science-insights-round-3.pptx",
+    "expected_slide": 8,
+    "should_refuse": false
+  },
+  {
+    "id": "P05",
+    "question": "Why are athletes with higher spinal cord injuries at greater risk when exercising in the heat?",
+    "expected_source": "wheelchair-thermoreg-presentation-final.pptx",
+    "expected_slide": 2,
+    "should_refuse": false
+  },
+  {
+    "id": "P06",
+    "question": "At what WBGT does wheelchair tennis require immediate suspension of play?",
+    "expected_source": "wheelchair-thermoreg-presentation-final.pptx",
+    "expected_slide": 10,
+    "should_refuse": false
+  },
+  {
+    "id": "P07",
+    "question": "What problems did athletes report with the wellbeing questions in AMS?",
+    "expected_source": "ams-workshop-feedback-and-action-items.pptx",
+    "expected_slide": 9,
+    "should_refuse": false
+  },
+  {
+    "id": "P08",
+    "question": "What did coaches want AMS to do with data from wearable devices?",
+    "expected_source": "ams-workshop-feedback-and-action-items.pptx",
+    "expected_slide": 9,
+    "should_refuse": false
+  },
+  {
+    "id": "P09",
+    "question": "How many participants took part in the Cardio Tennis study?",
+    "expected_source": "cardio-tennis-paper.pdf",
+    "expected_page": 2,
+    "should_refuse": false
+  },
+  {
+    "id": "P10",
+    "question": "How did blood lactate respond to the Cardio Tennis session?",
+    "expected_source": "cardio-tennis-paper.pdf",
+    "expected_page": 5,
+    "should_refuse": false
+  },
+  {
+    "id": "P11",
+    "question": "Who won the 2025 Australian Open men's singles title?",
+    "expected_source": null,
+    "should_refuse": true
+  }
+]
