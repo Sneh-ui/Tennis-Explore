@@ -150,12 +150,18 @@ def list_s3_objects(s3_client, bucket, prefix):
                 else:
                     last_modified_text = str(last_modified)
 
+                etag = (
+                    obj.get("ETag", "")
+                    .strip('"')
+                )
+
                 record = {
                     "s3_key": key,
                     "file_name": Path(key).name,
                     "file_type": extension,
                     "size_bytes": size_bytes,
                     "size_mb": bytes_to_mb(size_bytes),
+                    "etag": etag,
                     "last_modified": last_modified_text,
                     "source_folder": get_source_folder(key),
                 }
@@ -193,6 +199,7 @@ def write_inventory_csv(records, output_path):
         "file_type",
         "size_bytes",
         "size_mb",
+        "etag",
         "last_modified",
         "source_folder",
     ]
