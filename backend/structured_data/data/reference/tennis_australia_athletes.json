@@ -1,0 +1,1439 @@
+[
+    {
+        "athlete": "Adam Walton",
+        "dob": "1999-04-17",
+        "state": "QLD",
+        "program": "NTA",
+        "pro_id": "ATPW09E",
+        "itf_id": "800400063",
+        "utr_id": [
+            "3086941"
+        ],
+        "lmid": "826567"
+    },
+    {
+        "athlete": "Cruz Hewitt",
+        "dob": "2008-12-11",
+        "state": "NSW",
+        "program": "NTA",
+        "pro_id": "ATPH0K0",
+        "itf_id": "800694107",
+        "utr_id": [
+            "3542192",
+            "4681303",
+            "4541290"
+        ],
+        "aus_id": "61703858328",
+        "lmid": "890267",
+        "tcid": "66333710197"
+    },
+    {
+        "athlete": "Duje Markovina",
+        "dob": "2007-09-12",
+        "state": "QLD",
+        "program": "NTA",
+        "pro_id": "ATPM0U9",
+        "itf_id": "800548294",
+        "utr_id": [
+            "5027925",
+            "3747925"
+        ],
+        "tcid": "66333991106"
+    },
+    {
+        "athlete": "Emerson Jones",
+        "dob": "2008-07-07",
+        "state": "QLD",
+        "program": "NTA",
+        "pro_id": "WTA333111",
+        "itf_id": "800672826",
+        "utr_id": [
+            "3679433",
+            "2106361"
+        ],
+        "aus_id": "61600927238",
+        "lmid": "720267",
+        "tcid": "66333437949"
+    },
+    {
+        "athlete": "James McCabe",
+        "dob": "2003-07-05",
+        "state": "NSW",
+        "program": "NTA",
+        "pro_id": "ATPM00Q",
+        "itf_id": "800578717",
+        "utr_id": [
+            "1743600",
+            "4210352"
+        ],
+        "aus_id": "61200479084",
+        "lmid": "810353"
+    },
+    {
+        "athlete": "Maya Joint",
+        "dob": "2006-04-16",
+        "state": "QLD",
+        "program": "NTA",
+        "pro_id": "WTA330544",
+        "itf_id": "800555544",
+        "utr_id": [
+            "5299411",
+            "3851393"
+        ],
+        "tcid": "66334003042"
+    },
+    {
+        "athlete": "Mustafa Ege Sik",
+        "dob": "2009-09-01",
+        "state": "QLD",
+        "program": "NTA",
+        "pro_id": "ATPS1D0",
+        "itf_id": "800626993",
+        "utr_id": [
+            "5261007",
+            "1711305"
+        ],
+        "tennis_id": "IKX9711456"
+    },
+    {
+        "athlete": "Rinky Hijikata",
+        "dob": "2001-02-23",
+        "state": "NSW",
+        "program": "NTA",
+        "pro_id": "ATPH0BH",
+        "itf_id": "800400105",
+        "utr_id": [
+            "5617011",
+            "1609719"
+        ],
+        "aus_id": "61200553942"
+    },
+    {
+        "athlete": "Tahlia Kokkinis",
+        "dob": "2008-08-11",
+        "state": "VIC",
+        "program": "NTA",
+        "pro_id": "WTA332661",
+        "itf_id": "800675688",
+        "utr_id": [
+            "3539621"
+        ],
+        "tennis_id": "KOK5710520",
+        "aus_id": "61000476200",
+        "lmid": "766476",
+        "tcid": "66333883461"
+    },
+    {
+        "athlete": "Talia Gibson",
+        "dob": "2004-06-18",
+        "state": "WA",
+        "program": "NTA",
+        "pro_id": "WTA329393",
+        "itf_id": "800509146",
+        "utr_id": [
+            "2087724"
+        ],
+        "aus_id": "61400407648",
+        "lmid": "817902",
+        "tcid": "66333652402"
+    },
+    {
+        "athlete": "Taylah Preston",
+        "dob": "2005-10-27",
+        "state": "WA",
+        "program": "NTA",
+        "pro_id": "WTA330291",
+        "itf_id": "800555682",
+        "utr_id": [
+            "379732"
+        ],
+        "aus_id": "61400416116",
+        "lmid": "724607",
+        "tcid": "66333478277"
+    },
+    {
+        "athlete": "Tristan Schoolkate",
+        "dob": "2001-02-26",
+        "state": "WA",
+        "program": "NTA",
+        "pro_id": "ATPS0N0",
+        "itf_id": "800427056",
+        "utr_id": [
+            "249413"
+        ],
+        "aus_id": "61400367727",
+        "lmid": "764461",
+        "tcid": "66333490563"
+    },
+    {
+        "athlete": "Ty Host",
+        "dob": "2007-05-05",
+        "state": "QLD",
+        "program": "NTA",
+        "pro_id": "ATPH0LI",
+        "itf_id": "800569348",
+        "utr_id": [
+            "5670771",
+            "3030840"
+        ],
+        "tcid": "66333991081"
+    },
+    {
+        "athlete": "Aidan Chan",
+        "dob": "2011-01-04",
+        "state": "WA",
+        "program": "NDP",
+        "itf_id": "800747188",
+        "utr_id": [
+            "4018619"
+        ],
+        "tennis_id": "CHA9799224",
+        "aus_id": "61002019826",
+        "lmid": "928269",
+        "tcid": "66333735789"
+    },
+    {
+        "athlete": "Aleksandr Kharkov",
+        "dob": "2012-03-10",
+        "state": "NSW",
+        "program": "NDP",
+        "itf_id": "800825952",
+        "utr_id": [
+            "1622503"
+        ],
+        "aus_id": "61003916341",
+        "lmid": "839380",
+        "tcid": "66333966476"
+    },
+    {
+        "athlete": "Ami Dalla Pozza",
+        "dob": "2011-03-10",
+        "state": "NSW",
+        "program": "NDP",
+        "itf_id": "800738182",
+        "utr_id": [
+            "2197254"
+        ],
+        "tennis_id": "DAL2400125",
+        "aus_id": "61003154565",
+        "lmid": "957406",
+        "tcid": "66333480518"
+    },
+    {
+        "athlete": "Ana Maric",
+        "dob": "2012-03-30",
+        "state": "VIC",
+        "program": "NDP",
+        "itf_id": "800713276",
+        "utr_id": [
+            "3644861"
+        ],
+        "tennis_id": "MAR9125554",
+        "aus_id": "61003822754",
+        "lmid": "951598",
+        "tcid": "66333759292"
+    },
+    {
+        "athlete": "Christopher Manton",
+        "dob": "2012-03-02",
+        "state": "VIC",
+        "program": "NDP",
+        "itf_id": "800789672",
+        "utr_id": [
+            "3608672",
+            "4604204",
+            "4614919",
+            "5354436"
+        ],
+        "tennis_id": "MAN2047546",
+        "aus_id": "61703900944",
+        "lmid": "978866",
+        "tcid": "66333731463"
+    },
+    {
+        "athlete": "Emilie Chen",
+        "dob": "2010-01-22",
+        "state": "NSW",
+        "program": "NDP",
+        "itf_id": "800712049",
+        "utr_id": [
+            "4489098",
+            "3620658"
+        ],
+        "tennis_id": "CHE5979603",
+        "aus_id": "61202083218",
+        "lmid": "974588",
+        "tcid": "66333730309"
+    },
+    {
+        "athlete": "Ethan Domingo",
+        "dob": "2010-11-20",
+        "state": "NSW",
+        "program": "NDP",
+        "itf_id": "800711174",
+        "utr_id": [
+            "1361380",
+            "5963765"
+        ],
+        "tennis_id": "DOM6095953",
+        "aus_id": "61003346669",
+        "lmid": "812139",
+        "tcid": "66333645552"
+    },
+    {
+        "athlete": "Har Abir Sekhon",
+        "dob": "2010-05-20",
+        "state": "NSW",
+        "program": "NDP",
+        "itf_id": "800712737",
+        "utr_id": [
+            "3539755",
+            "5985391"
+        ],
+        "tennis_id": "SEK7321677",
+        "aus_id": "61002628393",
+        "lmid": "810711",
+        "tcid": "66336547666"
+    },
+    {
+        "athlete": "Heaton Pann",
+        "dob": "2010-04-04",
+        "state": "QLD",
+        "program": "NDP",
+        "itf_id": "800780306",
+        "utr_id": [
+            "3678437",
+            "4463903"
+        ],
+        "tennis_id": "PAN3274954",
+        "aus_id": "61601278861",
+        "lmid": "957625",
+        "tcid": "66333772327"
+    },
+    {
+        "athlete": "Jizelle Sibai",
+        "dob": "2009-10-01",
+        "state": "NSW",
+        "program": "NDP",
+        "pro_id": "WTA335473",
+        "itf_id": "800725207",
+        "utr_id": [
+            "2861607"
+        ],
+        "tennis_id": "SIB6888573",
+        "aus_id": "61201405122",
+        "lmid": "938240",
+        "tcid": "66333741225"
+    },
+    {
+        "athlete": "Jobe Dikkenberg",
+        "dob": "2013-02-07",
+        "state": "QLD",
+        "program": "NDP",
+        "utr_id": [
+            "3519677",
+            "5683755"
+        ],
+        "aus_id": "61202115764",
+        "lmid": "969681",
+        "tcid": "66333792197"
+    },
+    {
+        "athlete": "Lara Wu",
+        "dob": "2012-04-28",
+        "state": "SA",
+        "program": "NDP",
+        "itf_id": "800790035",
+        "utr_id": [
+            "2640119"
+        ],
+        "tennis_id": "WUX4580322",
+        "lmid": "854495",
+        "tcid": "66333944834"
+    },
+    {
+        "athlete": "Musemma Cilek",
+        "dob": "2011-04-06",
+        "state": "VIC",
+        "program": "NDP",
+        "itf_id": "800751083",
+        "utr_id": [
+            "3282613",
+            "5797482",
+            "4944084"
+        ],
+        "tennis_id": "CIL3250758",
+        "aus_id": "61703875435",
+        "lmid": "922509",
+        "tcid": "6333735302"
+    },
+    {
+        "athlete": "Nikolas Baker",
+        "dob": "2009-10-10",
+        "state": "VIC",
+        "program": "NDP",
+        "pro_id": "ATPB0YS",
+        "itf_id": "800705065",
+        "utr_id": [
+            "3242241",
+            "4091859"
+        ],
+        "tennis_id": "BAK7213354",
+        "aus_id": "61003471382",
+        "lmid": "922634",
+        "tcid": "66333773125"
+    },
+    {
+        "athlete": "Novak Palombo",
+        "dob": "2012-07-27",
+        "state": "VIC",
+        "program": "NDP",
+        "itf_id": "800781981",
+        "utr_id": [
+            "1894566",
+            "5926201"
+        ],
+        "tennis_id": "PAL8313425",
+        "aus_id": "61002623367",
+        "lmid": "939774",
+        "tcid": "66333473580"
+    },
+    {
+        "athlete": "Renee Alame",
+        "dob": "2009-05-05",
+        "state": "NSW",
+        "program": "NDP",
+        "pro_id": "WTA334185",
+        "itf_id": "800701055",
+        "utr_id": [
+            "3901547",
+            "4617649"
+        ],
+        "tennis_id": "ALA2345079",
+        "aus_id": "61001168224",
+        "lmid": "785667",
+        "tcid": "66333887946"
+    },
+    {
+        "athlete": "Sebastian Lavorato",
+        "dob": "2012-01-31",
+        "state": "NSW",
+        "program": "NDP",
+        "itf_id": "800780528",
+        "utr_id": [
+            "1710573"
+        ],
+        "tennis_id": "LAV8302490",
+        "aus_id": "61002723795",
+        "lmid": "916262",
+        "tcid": "66333410311"
+    },
+    {
+        "athlete": "Sehun Park",
+        "dob": "2010-05-19",
+        "state": "WA",
+        "program": "NDP",
+        "itf_id": "800718607",
+        "utr_id": [
+            "2478972",
+            "5552542"
+        ],
+        "tennis_id": "PAR6184124",
+        "aus_id": "61400783372",
+        "lmid": "761579",
+        "tcid": "66336463249"
+    },
+    {
+        "athlete": "Seungyeon Seo",
+        "dob": "2013-03-24",
+        "state": "QLD",
+        "program": "NDP",
+        "itf_id": "800830781",
+        "utr_id": [
+            "3773922",
+            "5447867",
+            "5697865",
+            "6012331",
+            "6029799",
+            "6099487"
+        ],
+        "tennis_id": "SEO9429119",
+        "aus_id": "61601358296",
+        "lmid": "1005006",
+        "tcid": "66333891207"
+    },
+    {
+        "athlete": "Suri Suchovsky",
+        "dob": "2011-04-20",
+        "state": "NSW",
+        "program": "NDP",
+        "itf_id": "800748367",
+        "utr_id": [
+            "1896458"
+        ],
+        "tennis_id": "SUC3008945",
+        "aus_id": "61202132421",
+        "lmid": "1062021",
+        "tcid": "66333891110"
+    },
+    {
+        "athlete": "Taiki Takizawa",
+        "dob": "2010-07-13",
+        "state": "QLD",
+        "program": "NDP",
+        "pro_id": "ATPT0KM",
+        "itf_id": "800746542",
+        "utr_id": [
+            "4479293"
+        ],
+        "tennis_id": "TAK7497037",
+        "aus_id": "61601291418",
+        "lmid": "890664",
+        "tcid": "66333620341"
+    },
+    {
+        "athlete": "Tori Russell",
+        "dob": "2010-05-07",
+        "state": "QLD",
+        "program": "NDP",
+        "pro_id": "WTA336364",
+        "itf_id": "800747553",
+        "utr_id": [
+            "1691197"
+        ],
+        "tennis_id": "RUS1548897",
+        "aus_id": "61601324138",
+        "lmid": "835357",
+        "tcid": "66333630932"
+    },
+    {
+        "athlete": "Ymerali Ibraimi",
+        "dob": "2009-02-13",
+        "state": "VIC",
+        "program": "NDP",
+        "pro_id": "ATPI0CD",
+        "itf_id": "800711858",
+        "utr_id": [
+            "384210"
+        ],
+        "tennis_id": "IBR2818946",
+        "aus_id": "61002215064",
+        "lmid": "974766",
+        "tcid": "66333805862"
+    },
+    {
+        "athlete": "Aleksander Mamistvalov",
+        "dob": "2015-05-08",
+        "state": "WA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "4810917"
+        ],
+        "lmid": "1044825",
+        "tcid": "66333957261"
+    },
+    {
+        "athlete": "Alicia Yang",
+        "dob": "2015-03-07",
+        "state": "ACT",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3775934"
+        ],
+        "lmid": "1007255",
+        "tcid": "66333894743"
+    },
+    {
+        "athlete": "Amber Zhang",
+        "dob": "2015-05-08",
+        "state": "NSW",
+        "program": "NDP Connect",
+        "utr_id": [
+            "4357436"
+        ],
+        "lmid": "1070096",
+        "tcid": "66333965617"
+    },
+    {
+        "athlete": "Amelia Hilton",
+        "dob": "2013-02-16",
+        "state": "WA",
+        "program": "NDP Connect",
+        "itf_id": "800829318",
+        "utr_id": [
+            "5689178"
+        ],
+        "aus_id": "61004181795",
+        "lmid": "970728",
+        "tcid": "66333698966"
+    },
+    {
+        "athlete": "Arin Gowda",
+        "dob": "2014-07-15",
+        "state": "NSW",
+        "program": "NDP Connect",
+        "utr_id": [
+            "2797569"
+        ],
+        "aus_id": "61202171699",
+        "lmid": "999499",
+        "tcid": "66333834689"
+    },
+    {
+        "athlete": "Arlo Bear",
+        "dob": "2015-04-12",
+        "state": "ACT",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3808585"
+        ],
+        "aus_id": "61100170952",
+        "lmid": "1004685",
+        "tcid": "66333890808"
+    },
+    {
+        "athlete": "Ayaan Malaney",
+        "dob": "2015-09-02",
+        "state": "WA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3665963"
+        ],
+        "lmid": "998280",
+        "tcid": "66333833483"
+    },
+    {
+        "athlete": "Blake Graham",
+        "dob": "2013-03-15",
+        "state": "SA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3953379"
+        ],
+        "aus_id": "61500963534",
+        "lmid": "948544",
+        "tcid": "66333901665"
+    },
+    {
+        "athlete": "Bon Johansen",
+        "dob": "2014-06-05",
+        "state": "ACT",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3747027"
+        ],
+        "aus_id": "61100169873",
+        "lmid": "922617",
+        "tcid": "66333735392"
+    },
+    {
+        "athlete": "Boston Paull",
+        "dob": "2014-08-14",
+        "state": "WA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "2538685"
+        ],
+        "aus_id": "61004034288",
+        "lmid": "972731",
+        "tcid": "66333899407"
+    },
+    {
+        "athlete": "Caleb Gwinnell-Sheather",
+        "dob": "2013-04-20",
+        "state": "NSW",
+        "program": "NDP Connect",
+        "utr_id": [
+            "2089598"
+        ],
+        "aus_id": "61202156711",
+        "lmid": "999284",
+        "tcid": "66333834481"
+    },
+    {
+        "athlete": "Celeste Rubiano",
+        "dob": "2014-07-18",
+        "state": "ACT",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3097749"
+        ],
+        "aus_id": "61202173292",
+        "lmid": "1003965",
+        "tcid": "66333787690"
+    },
+    {
+        "athlete": "Christian Monda",
+        "dob": "2015-06-05",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3701479"
+        ],
+        "aus_id": "61703922247",
+        "lmid": "1016719",
+        "tcid": "66333894678"
+    },
+    {
+        "athlete": "Darcy Basist",
+        "dob": "2013-11-01",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3653338"
+        ],
+        "aus_id": "61703903927",
+        "lmid": "964343",
+        "tcid": "66333788378"
+    },
+    {
+        "athlete": "Elaine Wang",
+        "dob": "2013-03-14",
+        "state": "SA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3496791"
+        ],
+        "lmid": "980239",
+        "tcid": "66333809972"
+    },
+    {
+        "athlete": "Emily Liang",
+        "dob": "2013-03-26",
+        "state": "NSW",
+        "program": "NDP Connect",
+        "itf_id": "800860556",
+        "utr_id": [
+            "3097372"
+        ],
+        "aus_id": "61202148689",
+        "lmid": "995175",
+        "tcid": "66333808778"
+    },
+    {
+        "athlete": "Emma Chadwick",
+        "dob": "2014-06-20",
+        "state": "SA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3628960"
+        ],
+        "lmid": "994573",
+        "tcid": "66333829949"
+    },
+    {
+        "athlete": "Ethan Bottele",
+        "dob": "2014-06-03",
+        "state": "NSW",
+        "program": "NDP Connect",
+        "utr_id": [
+            "2092317"
+        ],
+        "aus_id": "61202138446",
+        "lmid": "1004725",
+        "tcid": "66333891168"
+    },
+    {
+        "athlete": "Ethan Wang",
+        "dob": "2013-01-09",
+        "state": "NSW",
+        "program": "NDP Connect",
+        "utr_id": [
+            "5698301"
+        ],
+        "aus_id": "61003927335",
+        "lmid": "906053",
+        "tcid": "66333723275"
+    },
+    {
+        "athlete": "Gavy Dhindsa",
+        "dob": "2014-04-27",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "utr_id": [
+            "5410694"
+        ],
+        "aus_id": "61703891570",
+        "lmid": "919852",
+        "tcid": "66333730508"
+    },
+    {
+        "athlete": "George Hamman",
+        "dob": "2015-03-03",
+        "state": "ACT",
+        "program": "NDP Connect",
+        "utr_id": [
+            "5584942"
+        ],
+        "lmid": "1004686",
+        "tcid": "66333877203"
+    },
+    {
+        "athlete": "Grace Gribbon",
+        "dob": "2015-04-09",
+        "state": "WA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3299059"
+        ],
+        "aus_id": "61400807492",
+        "lmid": "951286",
+        "tcid": "66333890505"
+    },
+    {
+        "athlete": "Grace Janjua",
+        "dob": "2013-04-29",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "itf_id": "800828955",
+        "utr_id": [
+            "2752268"
+        ],
+        "aus_id": "61004306806",
+        "lmid": "998879",
+        "tcid": "66333833212"
+    },
+    {
+        "athlete": "Grace Liu",
+        "dob": "2015-02-22",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3652681"
+        ],
+        "aus_id": "61703906403",
+        "lmid": "996070",
+        "tcid": "66333831355"
+    },
+    {
+        "athlete": "Hayden Willey",
+        "dob": "2014-04-21",
+        "state": "WA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3278254"
+        ],
+        "aus_id": "61004137281",
+        "lmid": "968713",
+        "tcid": "66333791403"
+    },
+    {
+        "athlete": "Isaak Savich",
+        "dob": "2015-07-17",
+        "state": "WA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "4140313"
+        ],
+        "lmid": "1018896",
+        "tcid": "66333896016"
+    },
+    {
+        "athlete": "Ishita Nayal",
+        "dob": "2014-01-01",
+        "state": "NSW",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3807312"
+        ],
+        "lmid": "1009826",
+        "tcid": "66333897574"
+    },
+    {
+        "athlete": "Jessica Qian",
+        "dob": "2014-01-30",
+        "state": "SA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3498733"
+        ],
+        "aus_id": "61500963984",
+        "lmid": "960108",
+        "tcid": "66333785322"
+    },
+    {
+        "athlete": "Jocelyn Jia",
+        "dob": "2013-01-02",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "itf_id": "800828894",
+        "utr_id": [
+            "3495135"
+        ],
+        "aus_id": "61703913477",
+        "lmid": "980873",
+        "tcid": "66333810547"
+    },
+    {
+        "athlete": "Ken Dalla Pozza",
+        "dob": "2013-08-19",
+        "state": "NSW",
+        "program": "NDP Connect",
+        "utr_id": [
+            "2712445"
+        ],
+        "aus_id": "61202172849",
+        "lmid": "957458",
+        "tcid": "66333772230"
+    },
+    {
+        "athlete": "Kevin Chen",
+        "dob": "2014-03-30",
+        "state": "QLD",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3256781"
+        ],
+        "aus_id": "61601352646",
+        "lmid": "979461",
+        "tcid": "66333809392"
+    },
+    {
+        "athlete": "Kiaan Kottoor",
+        "dob": "2015-09-21",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "utr_id": [
+            "5518952"
+        ],
+        "lmid": "1015331",
+        "tcid": "66333926455"
+    },
+    {
+        "athlete": "Kiara Naqqash",
+        "dob": "2016-06-19",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "utr_id": [
+            "4803919"
+        ],
+        "lmid": "1051281",
+        "tcid": "66333891763"
+    },
+    {
+        "athlete": "Ksenia Arutyunova",
+        "dob": "2014-07-10",
+        "state": "ACT",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3560462"
+        ],
+        "lmid": "983066",
+        "tcid": "66333812317"
+    },
+    {
+        "athlete": "Kyla Guirguis",
+        "dob": "2013-01-11",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "itf_id": "800852659",
+        "utr_id": [
+            "5691183"
+        ],
+        "aus_id": "61703885074",
+        "lmid": "965100",
+        "tcid": "66333788934"
+    },
+    {
+        "athlete": "Lachlan Butters",
+        "dob": "2015-05-03",
+        "state": "TAS",
+        "program": "NDP Connect",
+        "utr_id": [
+            "4023528"
+        ],
+        "aus_id": "61004100477",
+        "lmid": "985785",
+        "tcid": "66333813971"
+    },
+    {
+        "athlete": "Lennox Kelly",
+        "dob": "2013-07-29",
+        "state": "QLD",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3022526"
+        ],
+        "aus_id": "61601329148",
+        "lmid": "976483",
+        "tcid": "66333807599"
+    },
+    {
+        "athlete": "Leo Di Stefano",
+        "dob": "2014-07-15",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3163501"
+        ],
+        "aus_id": "61703902300",
+        "lmid": "972380",
+        "tcid": "66333804273"
+    },
+    {
+        "athlete": "Lindsay Grave",
+        "dob": "2014-08-19",
+        "state": "ACT",
+        "program": "NDP Connect",
+        "utr_id": [
+            "4065666"
+        ],
+        "lmid": "1019957",
+        "tcid": "66333941294"
+    },
+    {
+        "athlete": "Lola Fromberg",
+        "dob": "2014-02-04",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "utr_id": [
+            "4558444"
+        ],
+        "aus_id": "61703917901",
+        "lmid": "968802",
+        "tcid": "66333791457"
+    },
+    {
+        "athlete": "Louis Chen",
+        "dob": "2015-09-18",
+        "state": "ACT",
+        "program": "NDP Connect",
+        "utr_id": [
+            "4063823"
+        ],
+        "aus_id": "61100171584",
+        "lmid": "1021645",
+        "tcid": "66333892052"
+    },
+    {
+        "athlete": "Maria Gabrys",
+        "dob": "2014-03-22",
+        "state": "NSW",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3930258"
+        ],
+        "lmid": "1015816",
+        "tcid": "66333927049"
+    },
+    {
+        "athlete": "Myra Janjua",
+        "dob": "2015-04-21",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "utr_id": [
+            "5682201"
+        ],
+        "aus_id": "61004065957",
+        "lmid": "1108110",
+        "tcid": "66333669458"
+    },
+    {
+        "athlete": "Odin Stroud",
+        "dob": "2014-05-25",
+        "state": "ACT",
+        "program": "NDP Connect",
+        "utr_id": [
+            "4102256"
+        ],
+        "lmid": "1030275",
+        "tcid": "66333890256"
+    },
+    {
+        "athlete": "Oliver Baker",
+        "dob": "2013-12-05",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "utr_id": [
+            "5697862",
+            "2827730"
+        ],
+        "aus_id": "61003469280",
+        "lmid": "1010705",
+        "tcid": "66333895051"
+    },
+    {
+        "athlete": "Oliver Williams",
+        "dob": "2013-12-05",
+        "state": "SA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3054896"
+        ],
+        "aus_id": "61500962929",
+        "lmid": "947843",
+        "tcid": "66333739693"
+    },
+    {
+        "athlete": "Oscar Luo",
+        "dob": "2014-03-12",
+        "state": "NSW",
+        "program": "NDP Connect",
+        "utr_id": [
+            "4542756"
+        ],
+        "aus_id": "61202147690",
+        "lmid": "993150",
+        "tcid": "66333760993"
+    },
+    {
+        "athlete": "Patrick Siriphromphan",
+        "dob": "2015-02-14",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3578067"
+        ],
+        "aus_id": "61703921941",
+        "lmid": "1109876",
+        "tcid": "66333900906"
+    },
+    {
+        "athlete": "Roman Puthiaparampil",
+        "dob": "2015-10-29",
+        "state": "WA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "5956252",
+            "5782063",
+            "5796169"
+        ],
+        "lmid": "980143",
+        "tcid": "66333773615"
+    },
+    {
+        "athlete": "Sarah Good-Giles",
+        "dob": "2013-07-12",
+        "state": "QLD",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3761535"
+        ],
+        "aus_id": "61601321562",
+        "lmid": "971586",
+        "tcid": "66333790080"
+    },
+    {
+        "athlete": "Shawn Lyu",
+        "dob": "2016-05-21",
+        "state": "VIC",
+        "program": "NDP Connect",
+        "utr_id": [
+            "4210701"
+        ],
+        "lmid": "1042055",
+        "tcid": "66333968558"
+    },
+    {
+        "athlete": "Sofia Haddock",
+        "dob": "2013-03-29",
+        "state": "SA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "2627130"
+        ],
+        "aus_id": "61500960446",
+        "lmid": "973009",
+        "tcid": "66333728198"
+    },
+    {
+        "athlete": "Taona Mashaya",
+        "dob": "2013-03-25",
+        "state": "QLD",
+        "program": "NDP Connect",
+        "itf_id": "800867935",
+        "utr_id": [
+            "3062886"
+        ],
+        "aus_id": "61601349548",
+        "lmid": "973720",
+        "tcid": "66333805225"
+    },
+    {
+        "athlete": "Thoma Bogatyrev",
+        "dob": "2013-05-03",
+        "state": "QLD",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3349603"
+        ],
+        "aus_id": "61601350260",
+        "lmid": "972545",
+        "tcid": "66333761710"
+    },
+    {
+        "athlete": "Trey Phillips",
+        "dob": "2013-04-15",
+        "state": "WA",
+        "program": "NDP Connect",
+        "utr_id": [
+            "5883326"
+        ],
+        "aus_id": "61400795230",
+        "lmid": "814404",
+        "tcid": "66333648690"
+    },
+    {
+        "athlete": "Woojin Son",
+        "dob": "2013-11-06",
+        "state": "NSW",
+        "program": "NDP Connect",
+        "utr_id": [
+            "3833772"
+        ],
+        "aus_id": "61202176380",
+        "lmid": "980434",
+        "tcid": "66333787925"
+    },
+    {
+        "athlete": "Nikita Volonski",
+        "dob": "2001-09-07",
+        "state": "NSW",
+        "program": "NTA College",
+        "pro_id": "ATPV0D2",
+        "itf_id": "800455947",
+        "utr_id": [
+            "4975664"
+        ],
+        "aus_id": "61200097726",
+        "lmid": "769335",
+        "tcid": "66333926050"
+    },
+    {
+        "athlete": "Edward Winter",
+        "dob": "2004-09-15",
+        "state": "SA",
+        "program": "NTA College",
+        "pro_id": "ATPW0C4",
+        "itf_id": "800555103",
+        "utr_id": [
+            "4205173"
+        ],
+        "aus_id": "61500441104",
+        "lmid": "714549",
+        "tcid": "66333467017"
+    },
+    {
+        "athlete": "Jeremy Jin",
+        "dob": "2004-07-12",
+        "state": "NSW / QLD",
+        "program": "NTA College",
+        "pro_id": "ATPJ0D4",
+        "itf_id": "800546597",
+        "utr_id": [
+            "1611578"
+        ],
+        "aus_id": "61200848608",
+        "lmid": "1014712",
+        "tcid": "66333884891"
+    },
+    {
+        "athlete": "Derek Pham",
+        "dob": "2004-03-31",
+        "state": "WA / QLD",
+        "program": "NTA College",
+        "pro_id": "ATPP0KJ",
+        "itf_id": "800546591",
+        "utr_id": [
+            "2082176"
+        ],
+        "aus_id": "61400411777",
+        "lmid": "674005",
+        "tcid": "66333372927"
+    },
+    {
+        "athlete": "Zach Viiala",
+        "dob": "2005-10-10",
+        "state": "WA",
+        "program": "NTA College",
+        "pro_id": "ATPV0FL",
+        "itf_id": "800564092",
+        "utr_id": [
+            "5733187"
+        ],
+        "aus_id": "61400422523",
+        "lmid": "755123",
+        "tcid": "66333409728"
+    },
+    {
+        "athlete": "Jeremy Zhang",
+        "dob": "2005-07-12",
+        "state": "NSW",
+        "program": "NTA College",
+        "pro_id": "ATPZ0CN",
+        "itf_id": "800576728",
+        "utr_id": [
+            "2631140"
+        ],
+        "aus_id": "61200778758",
+        "lmid": "806727",
+        "tcid": "66333805030"
+    },
+    {
+        "athlete": "Charlie Camus",
+        "dob": "2006-10-16",
+        "state": "ACT",
+        "program": "NTA College",
+        "pro_id": "ATPC0LM",
+        "itf_id": "800589023",
+        "utr_id": [
+            "3785054"
+        ],
+        "aus_id": "61100031006",
+        "lmid": "982626",
+        "tcid": "66333425034"
+    },
+    {
+        "athlete": "Hugh Winter",
+        "dob": "2006-10-23",
+        "state": "SA",
+        "program": "NTA College",
+        "pro_id": "ATPW0EU",
+        "itf_id": "800639221",
+        "utr_id": [
+            "2631139"
+        ],
+        "aus_id": "61500603651",
+        "lmid": "767211",
+        "tcid": "66333960952"
+    },
+    {
+        "athlete": "Thomas Gadecki",
+        "dob": "2006-01-29",
+        "state": "QLD",
+        "program": "NTA College",
+        "pro_id": "ATPG0KI",
+        "itf_id": "800667936",
+        "utr_id": [
+            "4921637"
+        ],
+        "aus_id": "61600523153",
+        "lmid": "692205",
+        "tcid": "66333967799"
+    },                                    
+    {
+        "athlete": "Charlotte Kempenaers-Pocz",
+        "dob": "2004-09-11",
+        "state": "SA",
+        "program": "NTA College",
+        "pro_id": "WTA329351",
+        "itf_id": "800498271",
+        "utr_id": [
+            "3668257"
+        ],
+        "aus_id": "61500466336",
+        "lmid": "8351",
+        "tcid": "66333924863"
+    },
+    {
+        "athlete": "Stefani Webb",
+        "dob": "2005-03-20",
+        "state": "VIC",
+        "program": "NTA College",
+        "pro_id": "WTA331645",
+        "itf_id": "800538433",
+        "utr_id": [
+            "5259409",
+            "5197176"
+        ],
+        "aus_id": "61702204618",
+        "lmid": "759206",
+        "tcid": "66334003503"
+    },
+    {
+        "athlete": "Melisa Ercan",
+        "dob": "2005-09-01",
+        "state": "QLD",
+        "program": "NTA College",
+        "pro_id": "WTA330075",
+        "itf_id": "800505308",
+        "utr_id": [
+            "3992219"
+        ]
+    },
+    {
+        "athlete": "Roisin Gilheany",
+        "dob": "2005-05-17",
+        "state": "VIC",
+        "program": "NTA College",
+        "pro_id": "WTA331624",
+        "itf_id": "800520785",
+        "utr_id": [
+            "4164363"
+        ],
+        "aus_id": "61702033449",
+        "lmid": "917582",
+        "tcid": "66333731100"
+    },
+    {
+        "athlete": "Lily Fairclough",
+        "dob": "2005-09-29",
+        "state": "WA",
+        "program": "NTA College",
+        "pro_id": "WTA330301",
+        "itf_id": "800564098",
+        "utr_id": [
+            "5266850",
+            "5856573"
+        ],
+        "aus_id": "61400746019",
+        "lmid": "851127",
+        "tcid": "66333695053"
+    },
+    {
+        "athlete": "Zara Larke",
+        "dob": "2005-04-25",
+        "state": "QLD",
+        "program": "NTA College",
+        "pro_id": "WTA331637",
+        "itf_id": "800581534",
+        "utr_id": [
+            "3727881"
+        ],
+        "aus_id": "61200775287",
+        "lmid": "785262",
+        "tcid": "66333888221"
+    },
+    {
+        "athlete": "Ashlee Narker",
+        "dob": "2005-11-14",
+        "state": "NSW",
+        "program": "NTA College",
+        "pro_id": "WTA333297",
+        "itf_id": "800687372",
+        "utr_id": [
+            "3037519"
+        ],
+        "aus_id": "61200775414",
+        "lmid": "752450",
+        "tcid": "66333540532"
+    },
+    {
+        "athlete": "Sarah Rokusek",
+        "dob": "2006-04-11",
+        "state": "NSW",
+        "program": "NTA College",
+        "pro_id": "WTA33163",
+        "itf_id": "800543296",
+        "utr_id": [
+            "3671503"
+        ],
+        "aus_id": "61000484874",
+        "lmid": "708551",
+        "tcid": "66333461721"
+    },
+    {
+        "athlete": "Lily Taylor",
+        "dob": "2006-09-02",
+        "state": "QLD",
+        "program": "NTA College",
+        "pro_id": "WTA331640",
+        "itf_id": "800635760",
+        "utr_id": [
+            "5387035"
+        ],
+        "aus_id": "61601289790",
+        "lmid": "893239",
+        "tcid": "66333968749"
+    }
+]

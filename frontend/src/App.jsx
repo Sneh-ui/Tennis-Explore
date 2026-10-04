@@ -14,11 +14,11 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/data-portal" element={<DataPortalPage />} />
-                <Route path="/media-library" element={<MediaLibraryPage />} />
+                {/* <Route path="/dashboard" element={<DashboardPage />} />  */}
+                {/* <Route path="/data-portal" element={<DataPortalPage />} />  */}
+                <Route path="/media-library" element={<MediaLibraryPage />} /> 
                 <Route path="/ai-chatbot" element={<AIChatbotPage />} />
-                <Route path="/archive" element={<ArchivePage />} />
+                {/* <Route path="/archive" element={<ArchivePage />} />  */}
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

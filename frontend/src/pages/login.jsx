@@ -43,11 +43,13 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
 
   if (user) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/ai-chatbot" replace />
+    // return <Navigate to="/dashboard" replace /> 
   }
 
   const isSignup = mode === 'signup'
-  const redirectTo = location.state?.from?.pathname ?? '/dashboard'
+  const redirectTo = location.state?.from?.pathname ?? '/ai-chatbot'
+  // const redirectTo = location.state?.from?.pathname ?? '/dashboard' 
 
   const setField = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }))

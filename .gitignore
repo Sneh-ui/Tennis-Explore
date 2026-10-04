@@ -1,5 +1,15 @@
-.DS_Store.DS_Store
-.DS_Store
+*.DS_Store
 node_modules/
 frontend/dist/
 .vscode/
+.env
+*.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+aws_credentials
+credentials
+backend/documents_v2/test_data_manual/
+backend/documents_v2/test_data/
+backend/documents_v2/outputs/

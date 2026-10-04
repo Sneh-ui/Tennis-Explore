@@ -337,10 +337,11 @@ function Header() {
           {user ? (
             <motion.div whileHover={{ color: "#b0f820" }}>
               <Link
-                to="/dashboard"
+                to="/ai-chatbot"
+                // to="/dashboard" 
                 className="cursor-pointer transition-colors"
               >
-                Dashboard
+                Ai Chat Bot
               </Link>
             </motion.div>
           ) : (

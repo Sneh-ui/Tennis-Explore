@@ -60,10 +60,10 @@ export function Sidebar({ mobileOpen, onCloseMobile }) {
         {/* Footer */}
         <div className="px-3 pt-4 mt-4">
           <Separator className="mb-4" />
-          <Button className="w-full" size="lg">
+          {/* <Button className="w-full" size="lg">
             <Icon name="add" className="text-sm" />
             New Analysis
-          </Button>
+          </Button> */}
           <button className="flex items-center px-4 py-3 mt-4 text-muted-foreground hover:text-foreground w-full text-left text-label-md transition-colors">
             <Icon name="help_outline" className="mr-3" />
             Help Center
