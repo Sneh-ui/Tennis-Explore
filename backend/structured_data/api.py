@@ -5,7 +5,7 @@ from backend.structured_data.queries import (
     get_player_ranking_history,
     get_latest_player_rankings,
 )
-
+from backend.structured_data.structured_chat import answer_structured_question
 
 app = FastAPI(
     title="Tennis EXPLORE Structured Data API",
@@ -59,3 +59,7 @@ def latest_player_rankings(player_id: int):
         "player_id": player_id,
         "rankings": rankings,
     }
+@app.post("/structured/chat")
+def structured_chat(question: str):
+    result = answer_structured_question(question)
+    return result

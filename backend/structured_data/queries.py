@@ -91,3 +91,34 @@ def get_latest_player_rankings(player_id):
 
     finally:
         conn.close()
+def fuzzy_search_players(name, limit=5):
+    """
+    Find the closest player-name matches across the full player table.
+    The limit controls only how many best matches are returned.
+    """
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    player_id,
+                    full_name,
+                    country,
+                    birth_year,
+                    similarity(full_name, %s) AS similarity_score
+                FROM core.players
+                WHERE full_name IS NOT NULL
+                  AND TRIM(full_name) <> ''
+                ORDER BY
+                    similarity(full_name, %s) DESC NULLS LAST
+                LIMIT %s;
+                """,
+                (name, name, limit),
+            )
+
+            return [dict(row) for row in cur.fetchall()]
+
+    finally:
+        conn.close()
