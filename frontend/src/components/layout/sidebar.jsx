@@ -4,11 +4,15 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { NAV_ITEMS } from '@/data/constants'
+import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 
 export function Sidebar({ mobileOpen, onCloseMobile }) {
   const location = useLocation()
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const isAdmin = (user?.role || '').toLowerCase() === 'admin'
+  const navItems = isAdmin ? [...NAV_ITEMS ] : NAV_ITEMS
 
   const handleNavigate = (path) => {
     navigate(path)
@@ -36,7 +40,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }) {
         {/* Navigation */}
         <ScrollArea className="flex-1 px-3">
           <nav className="space-y-1">
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               const isActive = location.pathname === item.path
               return (
                 <button

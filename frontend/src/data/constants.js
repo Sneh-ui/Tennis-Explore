@@ -6,6 +6,7 @@ export const NAV_ITEMS = [
   // { id: 'data-portal', icon: 'analytics', label: 'Data Portal', path: '/data-portal' }, 
   { id: 'media-library', icon: 'video_library', label: 'Media Library', path: '/media-library' },
   { id: 'ai-chatbot', icon: 'psychology', label: 'AI Insights', path: '/ai-chatbot' },
+  { id: 'admin-users', icon: 'admin_panel_settings', label: 'User Management', path: '/users' },
   // { id: 'archive', icon: 'inventory_2', label: 'Archive', path: '/archive' }, 
 ]
 

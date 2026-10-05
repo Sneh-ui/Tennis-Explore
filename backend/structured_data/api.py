@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from backend.structured_data.queries import (
     search_players,
@@ -6,11 +7,23 @@ from backend.structured_data.queries import (
     get_latest_player_rankings,
 )
 from backend.structured_data.structured_chat import answer_structured_question
+from backend.auth.router import router as auth_router
 
 app = FastAPI(
     title="Tennis EXPLORE Structured Data API",
     version="1.0.0",
 )
+
+# CORS for frontend (Vite dev: http://localhost:5173)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth_router)
 
 
 @app.get("/health")
