@@ -13,3 +13,4 @@ credentials
 backend/documents_v2/test_data_manual/
 backend/documents_v2/test_data/
 backend/documents_v2/outputs/
+*.out
