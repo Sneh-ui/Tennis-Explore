@@ -58,12 +58,18 @@ const HINTS = [
   "ATP Live Rankings",
 ];
 
-const PROFILE_IMG =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBGIcKV9ELNPFkyEs0mERlw_quRuuVkySlODEgZCDK4tk-N5ahEITwftdEuXe-DSjb_YDIFVe1AYALix5ng02vJRraMscEIwlqfipXl9DO5UMjXDmCwpz79C7dIC5_1Ge3jFxnh3x7cblHx3t_k3CxrfECMBQQNcLhgyekfe2-G-Bvs0uZ6bDfO4_ybczWqXYhiXLElNcnW6-8TpKZ3e8ZxW9gjoHuDC_Lv14GQKqPyAnNuYqYzKOv9W_bmVuMdPu-oLLALoANOuw";
-
 // Free Pexels tennis video (no auth needed for direct mp4)
 const BG_VIDEO_URL =
   "/videos/herobg.mp4";
+
+const getInitials = (name) =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 /* ─────────────────────────── ICON ─────────────────────────── */
 const Icon = ({ name, className = "", filled = false }) => (
   <span
@@ -321,7 +327,7 @@ function Header() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.6 }}
           className="flex gap-1 tracking-tight"
-          style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 500, lineHeight: "40px" }}
+          style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 32, fontWeight: 800, lineHeight: "40px" }}
         >
           <span className="text-white font-extrabold italic">Tennis</span>
           <span className="text-[#b0f820] font-light">Explore</span>
@@ -357,18 +363,16 @@ function Header() {
         </nav>
         <motion.div
           whileHover={{ scale: 1.1 }}
-          className="w-10 h-10 rounded-full overflow-hidden cursor-pointer group"
+          className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer"
           style={{
             background: "rgba(18, 20, 28, 0.6)",
             backdropFilter: "blur(20px)",
             border: "1px solid rgba(255,255,255,0.1)",
           }}
         >
-          <img
-            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-            src={PROFILE_IMG}
-            alt="Profile"
-          />
+          <span className="text-sm font-bold text-white" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+            {user ? getInitials(user.name) : "TE"}
+          </span>
         </motion.div>
       </div>
     </motion.header>
@@ -451,9 +455,9 @@ const TennisExploreHero = ()=> {
         fontFamily: "Inter, system-ui, sans-serif",
       }}
     >
-      {/* Google Fonts */}
+      {/* Google Fonts - Inter only for unified font style */}
       <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet"
       />
       <link
@@ -528,12 +532,12 @@ const TennisExploreHero = ()=> {
           {/* Headline + description row */}
           <div className="flex items-start justify-between mb-8">
             <div className="max-w-2xl">
-              <h2 className="flex flex-col" style={{ fontFamily: "'Playfair Display', serif" }}>
+              <h2 className="flex flex-col" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
                 <motion.span
                   initial={{ opacity: 0, y: 60, rotateX: 40 }}
                   animate={{ opacity: 1, y: 0, rotateX: 0 }}
                   transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-white font-normal tracking-tighter"
+                  className="text-white font-extrabold tracking-tighter"
                   style={{ fontSize: 84, lineHeight: "92px", letterSpacing: "-0.02em" }}
                 >
                   Let's Explore

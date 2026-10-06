@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useFormik } from 'formik'
 import { Icon } from '@/components/shared/icon'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { DEMO_ACCOUNT } from '@/context/auth-context'
 import { useAuth } from '@/hooks/use-auth'
 import { hasPendingQuery } from '@/lib/pending-query'
+import { loginSchema } from '@/lib/validations'
 
 const GLASS_STYLE = {
   background: 'rgba(18, 20, 28, 0.6)',
@@ -20,8 +22,8 @@ const INPUT_CLASSES = 'h-11 border-white/10 bg-white/[0.04] text-foreground plac
 function Wordmark() {
   return (
     <div className="flex flex-col items-center gap-3">
-      <p className="text-label-md uppercase tracking-[0.3em] text-primary">Performance Intelligence Platform</p>
-      <Link to="/" className="flex items-baseline gap-1 tracking-tight" style={{ fontFamily: "'Playfair Display', serif", fontSize: 40 }}>
+      <p className="text-label-md uppercase tracking-[0.3em] text-primary" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>Performance Intelligence Platform</p>
+      <Link to="/" className="flex items-baseline gap-1 tracking-tight" style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 40 }}>
         <span className="font-extrabold italic text-white">Tennis</span>
         <span className="font-light text-primary">Explore</span>
       </Link>
@@ -30,63 +32,45 @@ function Wordmark() {
 }
 
 export default function LoginPage() {
-  const { user, login, signup } = useAuth()
+  const { user, login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-
-  // Signup disabled for now — login-only feature
-  // const [mode, setMode] = useState('login')
-  const [mode] = useState('login')
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [serverError, setServerError] = useState('')
+  const redirectTo = location.state?.from?.pathname ?? '/ai-chatbot'
+
+  const formik = useFormik({
+    initialValues: { email: '', password: '' },
+    validationSchema: loginSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      setServerError('')
+      try {
+        await login({ email: values.email, password: values.password })
+        navigate(hasPendingQuery() ? '/ai-chatbot' : redirectTo, { replace: true })
+      } catch (err) {
+        setServerError(err.message)
+      } finally {
+        setSubmitting(false)
+      }
+    },
+  })
 
   if (user) {
     return <Navigate to="/ai-chatbot" replace />
-    // return <Navigate to="/dashboard" replace /> 
-  }
-
-  const isSignup = mode === 'signup'
-  const redirectTo = location.state?.from?.pathname ?? '/ai-chatbot'
-  // const redirectTo = location.state?.from?.pathname ?? '/dashboard' 
-
-  const setField = (field) => (event) => {
-    setForm((prev) => ({ ...prev, [field]: event.target.value }))
-    setError('')
   }
 
   const fillDemoCredentials = () => {
-    setForm({ name: '', email: DEMO_ACCOUNT.email, password: DEMO_ACCOUNT.password })
-    setError('')
+    formik.setValues({ email: DEMO_ACCOUNT.email, password: DEMO_ACCOUNT.password })
+    setServerError('')
   }
-
-  // Signup disabled for now — login-only feature
-  // const switchMode = () => {
-  //   setMode(isSignup ? 'login' : 'signup')
-  //   setError('')
-  // }
-
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-    setError('')
-    setSubmitting(true)
-    try {
-      await (isSignup
-        ? signup({ name: form.name, email: form.email, password: form.password })
-        : login({ email: form.email, password: form.password })
-      )
-      navigate(hasPendingQuery() ? '/ai-chatbot' : redirectTo, { replace: true })
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setSubmitting(false)
-    }
+  const fillCoachCredentials = () => {
+    formik.setValues({ email: 'coach@tennisexplore.au', password: 'coach123' })
+    setServerError('')
   }
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#02030A] font-sans">
-      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#02030A] font-sans" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
       {/* Ambient glow orbs */}
       <motion.div
@@ -113,29 +97,49 @@ export default function LoginPage() {
           style={GLASS_STYLE}
         >
           <div className="mb-6">
-            <h1 className="text-headline-lg text-foreground">{isSignup ? 'Create your account' : 'Welcome back'}</h1>
-            <p className="mt-1 text-body-md text-muted-foreground">
-              {isSignup ? 'Join the Tennis Explore analytics platform.' : 'Sign in to access your analytics workspace.'}
+            <h1 className="text-headline-lg text-foreground font-sans">Welcome back</h1>
+            <p className="mt-1 text-body-md text-muted-foreground font-sans">
+              Sign in to access your analytics workspace.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-            {isSignup && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input id="name" type="text" placeholder="Alex Rivera" value={form.name} onChange={setField('name')} autoComplete="name" required className={INPUT_CLASSES} />
-              </div>
-            )}
-
+          <form onSubmit={formik.handleSubmit} className="space-y-5" noValidate>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="you@tennisexplore.au" value={form.email} onChange={setField('email')} autoComplete="email" required className={INPUT_CLASSES} />
+              <Label htmlFor="email" className="font-sans">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@tennisexplore.au"
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                autoComplete="email"
+                className={`${INPUT_CLASSES} font-sans`}
+                aria-invalid={!!(formik.touched.email && formik.errors.email)}
+                aria-describedby={formik.errors.email ? 'email-error' : undefined}
+              />
+              {formik.touched.email && formik.errors.email && (
+                <p id="email-error" className="text-sm text-destructive font-sans" role="alert">{formik.errors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="font-sans">Password</Label>
               <div className="relative">
-                <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={form.password} onChange={setField('password')} autoComplete={isSignup ? 'new-password' : 'current-password'} required className={`${INPUT_CLASSES} pr-11`} />
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  autoComplete="current-password"
+                  className={`${INPUT_CLASSES} pr-11 font-sans`}
+                  aria-invalid={!!(formik.touched.password && formik.errors.password)}
+                  aria-describedby={formik.errors.password ? 'password-error' : undefined}
+                />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
@@ -145,41 +149,52 @@ export default function LoginPage() {
                   <Icon name={showPassword ? 'visibility_off' : 'visibility'} />
                 </button>
               </div>
+              {formik.touched.password && formik.errors.password && (
+                <p id="password-error" className="text-sm text-destructive font-sans" role="alert">{formik.errors.password}</p>
+              )}
             </div>
 
-            {error && (
-              <div className="flex items-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2.5">
+            {serverError && (
+              <div className="flex items-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2.5" role="alert" aria-live="polite">
                 <Icon name="error" className="text-xl text-destructive" />
-                <p className="text-body-md text-destructive">{error}</p>
+                <p className="text-body-md text-destructive font-sans">{serverError}</p>
               </div>
             )}
 
-            <Button type="submit" size="lg" disabled={submitting} className="w-full shadow-[0_0_24px_rgba(194,233,78,0.25)] hover:shadow-[0_0_36px_rgba(194,233,78,0.35)]">
-              {submitting ? (
+            <Button type="submit" size="lg" disabled={formik.isSubmitting} className="w-full font-sans shadow-[0_0_24px_rgba(194,233,78,0.25)] hover:shadow-[0_0_36px_rgba(194,233,78,0.35)]">
+              {formik.isSubmitting ? (
                 <>
                   <Icon name="progress_activity" className="animate-spin text-base" />
-                  {isSignup ? 'Creating account...' : 'Signing in...'}
+                  Signing in...
                 </>
               ) : (
                 <>
                   <Icon name="login" className="text-base" />
-                  {isSignup ? 'Create Account' : 'Sign In'}
+                  Sign In
                 </>
               )}
             </Button>
           </form>
 
-          {!isSignup && (
-            <div className="mt-6 rounded-xl border border-dashed border-te-outline bg-white/[0.02] p-4">
-              <p className="text-label-md uppercase tracking-wider text-muted-foreground">Demo Access</p>
-              <p className="mt-2 text-body-md text-muted-foreground">
-                {DEMO_ACCOUNT.email} / {DEMO_ACCOUNT.password}
+          <div className="mt-6 rounded-xl border border-dashed border-te-outline bg-white/[0.02] p-4 space-y-3">
+            <p className="text-label-md uppercase tracking-wider text-muted-foreground font-sans" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>Demo Access</p>
+            <div className="flex items-center justify-between">
+              <p className="text-body-md text-muted-foreground font-sans" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+                {DEMO_ACCOUNT.email} / {DEMO_ACCOUNT.password} <span className="text-xs uppercase tracking-wider ml-1">admin</span>
               </p>
-              <Button type="button" variant="link" size="sm" className="mt-1 h-auto p-0" onClick={fillDemoCredentials}>
-                Fill demo credentials
+              <Button type="button" variant="link" size="sm" className="h-auto p-0 font-sans" onClick={fillDemoCredentials}>
+                Fill admin
               </Button>
             </div>
-          )}
+            <div className="flex items-center justify-between">
+              <p className="text-body-md text-muted-foreground font-sans" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+                coach@tennisexplore.au / coach123 <span className="text-xs uppercase tracking-wider ml-1">coach</span>
+              </p>
+              <Button type="button" variant="link" size="sm" className="h-auto p-0 font-sans" onClick={fillCoachCredentials}>
+                Fill coach
+              </Button>
+            </div>
+          </div>
 
           {/* Signup disabled for now — login-only feature
           <p className="mt-6 text-center text-body-md text-muted-foreground">

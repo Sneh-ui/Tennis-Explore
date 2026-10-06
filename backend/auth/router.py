@@ -4,7 +4,13 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, EmailStr
 
 from backend.structured_data.database import get_db_connection
-from backend.auth.utils import verify_password, create_access_token, hash_password
+from backend.auth.utils import (
+    verify_password,
+    create_access_token,
+    create_refresh_token,
+    decode_refresh_token,
+    hash_password,
+)
 from backend.auth.deps import get_current_user_db, require_admin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -25,8 +31,19 @@ class UserResponse(BaseModel):
 
 class LoginResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class RefreshResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -63,9 +80,13 @@ def login(payload: LoginRequest):
             token = create_access_token(
                 {"sub": str(user["id"]), "email": user["email"], "role": user["role"], "name": user["name"]}
             )
+            refresh_token = create_refresh_token(
+                {"sub": str(user["id"]), "email": user["email"], "role": user["role"]}
+            )
 
             return {
                 "access_token": token,
+                "refresh_token": refresh_token,
                 "token_type": "bearer",
                 "user": {
                     "id": user["id"],
@@ -79,6 +100,60 @@ def login(payload: LoginRequest):
         conn.close()
 
 
+@router.post("/refresh", response_model=RefreshResponse)
+def refresh(payload: RefreshRequest):
+    import jwt
+
+    try:
+        data = decode_refresh_token(payload.refresh_token)
+        user_id = data.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, name, email, role FROM auth.users WHERE id=%s",
+                (user_id,),
+            )
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=401, detail="User not found")
+            user = dict(row)
+            new_access = create_access_token(
+                {"sub": str(user["id"]), "email": user["email"], "role": user["role"], "name": user["name"]}
+            )
+            new_refresh = create_refresh_token(
+                {"sub": str(user["id"]), "email": user["email"], "role": user["role"]}
+            )
+            return {
+                "access_token": new_access,
+                "refresh_token": new_refresh,
+                "token_type": "bearer",
+            }
+    finally:
+        conn.close()
+
+
+ALLOWED_ROLES = {"admin", "coach"}
+
+def normalize_role(role: str) -> str:
+    r = role.strip().lower()
+    if r not in ALLOWED_ROLES:
+        raise HTTPException(status_code=400, detail="Role must be admin or coach")
+    return r
+
+
+class UpdatePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
 @router.get("/me", response_model=UserResponse)
 def me(current_user: dict = Depends(get_current_user_db)):
     return {
@@ -90,13 +165,35 @@ def me(current_user: dict = Depends(get_current_user_db)):
     }
 
 
+@router.put("/me/password")
+def update_own_password(payload: UpdatePasswordRequest, current_user: dict = Depends(get_current_user_db)):
+    if len(payload.new_password) < 6:
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT password_hash FROM auth.users WHERE id=%s", (current_user["id"],))
+            row = cur.fetchone()
+            if not row or not verify_password(payload.current_password, row["password_hash"]):
+                raise HTTPException(status_code=400, detail="Current password is incorrect")
+            new_hash = hash_password(payload.new_password)
+            cur.execute(
+                "UPDATE auth.users SET password_hash=%s, updated_at=NOW() WHERE id=%s",
+                (new_hash, current_user["id"]),
+            )
+            conn.commit()
+            return {"detail": "Password updated successfully"}
+    finally:
+        conn.close()
+
+
 # ------------------- Admin User CRUD -------------------
 
 class CreateUserRequest(BaseModel):
     name: str
     email: EmailStr
     password: str
-    role: str = "Analyst"
+    role: str = "coach"
     profile_pic: Optional[str] = None
 
 
@@ -141,6 +238,7 @@ def create_user(payload: CreateUserRequest, admin: dict = Depends(require_admin)
         raise HTTPException(status_code=400, detail="Name is required")
     if len(payload.password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    role = normalize_role(payload.role or "coach")
 
     conn = get_db_connection()
     try:
@@ -161,7 +259,7 @@ def create_user(payload: CreateUserRequest, admin: dict = Depends(require_admin)
                     payload.name.strip(),
                     payload.email.strip().lower(),
                     hashed,
-                    payload.role.strip() or "Analyst",
+                    role,
                     payload.profile_pic,
                 ),
             )
@@ -227,8 +325,9 @@ def update_user(user_id: int, payload: UpdateUserRequest, admin: dict = Depends(
                 values.append(hash_password(payload.password))
 
             if payload.role is not None:
+                role = normalize_role(payload.role)
                 fields.append("role=%s")
-                values.append(payload.role.strip())
+                values.append(role)
 
             if payload.profile_pic is not None:
                 fields.append("profile_pic=%s")

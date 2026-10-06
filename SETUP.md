@@ -25,13 +25,17 @@ Project layout:
 ```
 735-Tennis-Explore/
 ├── backend/
-│   ├── structured_data/api.py      # FastAPI app
+│   ├── structured_data/api.py      # FastAPI app (CORS + auth router)
 │   ├── structured_data/sql/*.sql
-│   ├── auth/sql/01_create_users.sql
+│   ├── auth/sql/01_create_users.sql # role VARCHAR(20) admin/coach, default admin seeded
+│   ├── auth/utils.py               # JWT 24h access + 7d refresh
 │   ├── requirements.txt
 │   └── .env                        # not committed, create from .env.example
 ├── frontend/
-│   ├── vite.config.js
+│   ├── store/auth-store.js         # zustand persist
+│   ├── lib/axios.js                # interceptors + auto refresh
+│   ├── lib/query-client.js         # tanstack
+│   ├── vite.config.js              # manualChunks, chunkSizeWarningLimit:600
 │   ├── .env                        # VITE_API_URL
 │   └── src/
 └── SETUP.md
@@ -104,13 +108,15 @@ psql -h localhost -p 5432 -U <DB_USER> -c "CREATE DATABASE tennis_rankings_v2;"
 # run migrations from project root
 psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -f backend/structured_data/sql/01_create_schema.sql
 psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -f backend/auth/sql/01_create_users.sql
+# for local dev to reset roles: DROP TABLE IF EXISTS auth.users CASCADE; then re-run 01
 
 # verify (idempotent seed, no python seeder needed)
-psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -c "SELECT id, name, email, role FROM auth.users;"
-#  analyst@tennisexplore.au / ace123   -> Lead Analyst
-#  admin@tennisexplore.au   / admin123 -> Admin
+psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -c "SELECT id, name, email, role FROM auth.users ORDER BY id;"
+# 1 | Admin       | admin@tennisexplore.au | admin  <- default admin, can add others
+# 2 | Alex Rivera | coach@tennisexplore.au | coach
+# role is VARCHAR(20) DEFAULT 'coach', only admin/coach (app validates, no DB enum)
 
-psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -c "\dt *.*"
+psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -c "\dt auth.*"
 psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -c "SELECT version();"
 ```
 
@@ -155,10 +161,11 @@ STRUCTURED_DB_PASSWORD=<DB_PASS>
 JWT_SECRET=change-me-to-a-very-long-random-string-for-hs256-32bytes
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_HOURS=24
+JWT_REFRESH_EXPIRE_DAYS=7
 ```
 
 - `STRUCTURED_DB_USER/PASSWORD` must match the postgres user you created.
-- `JWT_SECRET` must be >=32 chars random in production.
+- `JWT_SECRET` must be >=32 chars random in production. Access 24h, refresh 7d via `POST /auth/refresh {refresh_token}`.
 - Loaded via `python-dotenv` in `backend/auth/utils.py` and `backend/structured_data/database.py`.
 
 ### 2.2 Install & Run
@@ -218,19 +225,27 @@ curl http://localhost:8000/health
 
 curl -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"analyst@tennisexplore.au","password":"ace123"}'
-# {"access_token":"eyJ...","token_type":"bearer","user":{"id":1,"name":"Alex Rivera",...}}
+  -d '{"email":"admin@tennisexplore.au","password":"admin123"}'
+# {"access_token":"eyJ...","refresh_token":"eyJ...","token_type":"bearer","user":{"id":1,"name":"Admin","role":"admin",...}}
 
-curl -X POST http://localhost:8000/auth/login \
+# refresh (7d)
+curl -X POST http://localhost:8000/auth/refresh \
   -H "Content-Type: application/json" \
-  -d '{"email":"analyst@tennisexplore.au","password":"wrong"}'
-# {"detail":"Invalid email or password"}
+  -d '{"refresh_token":"<refresh_token>"}'
+# {"access_token":"eyJ...","refresh_token":"eyJ...","token_type":"bearer"}
 
 # use token
-TOKEN=$(curl -s -X POST http://localhost:8000/auth/login -H "Content-Type: application/json" -d '{"email":"analyst@tennisexplore.au","password":"ace123"}' | python -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+TOKEN=$(curl -s -X POST http://localhost:8000/auth/login -H "Content-Type: application/json" -d '{"email":"admin@tennisexplore.au","password":"admin123"}' | python -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
 curl http://localhost:8000/auth/me -H "Authorization: Bearer $TOKEN"
-# {"id":1,"name":"Alex Rivera","email":"analyst@tennisexplore.au","role":"Lead Analyst",...}
+# {"id":1,"name":"Admin","email":"admin@tennisexplore.au","role":"admin",...}
 
+# update own password (self only)
+curl -X PUT http://localhost:8000/auth/me/password \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"current_password":"admin123","new_password":"newpass123"}'
+
+# admin users CRUD (admin only)
+curl http://localhost:8000/auth/users -H "Authorization: Bearer $TOKEN"
 curl "http://localhost:8000/players/search?name=Alex"
 ```
 
@@ -250,7 +265,7 @@ VITE_API_URL=http://localhost:8000
 
 For production set to your deployed backend URL, e.g. `https://api.tennisexplore.au`.
 
-Vite also proxies `/auth` to `http://localhost:8000` via `frontend/vite.config.js` (dev only).
+Vite also proxies `/auth` to `http://localhost:8000` via `frontend/vite.config.js` (dev only). `vite.config.js` has `manualChunks` for `react-vendor`, `router`, `query`, `form` (formik+yup), `axios`, `radix`, `motion`, etc., and `chunkSizeWarningLimit:600` (no warning).
 
 ### 3.2 Install & Run
 
@@ -258,10 +273,12 @@ Vite also proxies `/auth` to `http://localhost:8000` via `frontend/vite.config.j
 cd frontend
 
 npm install
+# installs: zustand, formik, yup, @tanstack/react-query, axios, + radix, framer-motion, etc.
 
 # development
 npm run dev -- --host 0.0.0.0 --port 5173
-# open http://localhost:5173 -> login analyst@tennisexplore.au / ace123 -> /ai-chatbot
+# open http://localhost:5173 -> login admin/admin123 (admin) or coach/coach123 (coach) -> /ai-chatbot
+# admin sees User Management (/users), coach does not
 
 # production build + preview
 npm run build
@@ -272,12 +289,22 @@ npm run preview -- --host 0.0.0.0 --port 4173
 # npx serve -s dist -l 4173
 ```
 
+State: `zustand` persist `tennis-explore-auth` (`src/store/auth-store.js`) with `login`, `validateSession` (calls `GET /auth/me` on refresh), `logout`. Axios `src/lib/axios.js` request (attach Bearer) + response (401 → `POST /auth/refresh` queue → retry). `src/lib/query-client.js` (2m stale), `src/hooks/use-users.js` (tanstack), `src/lib/validations.js` (Yup), `src/components/shared/form-field.jsx` (reusable), `src/components/ui/skeleton.jsx` (TableSkeleton/PageSkeleton).
+
 ### 3.3 Verify
 
 ```bash
 curl http://localhost:5173/ | head -20
 # <!DOCTYPE html> <title>Tennis Explore</title>
 ```
+
+All pages use `Inter` (`index.css` `font-sans`, `tailwind.config.js`, `TennisExploreHero` + `login` removed `Playfair Display`). User account in `header.jsx` is `h-12 w-12` initials `bg-primary` pill `h-[84px]` (30% larger, very visible), no image.
+
+### 3.4 Roles
+
+- `admin` can `GET/POST/PUT/DELETE /auth/users` and sees `User Management`; `coach` can `media-library`, `ai-chatbot` (`RoleGuard allowedRoles` in `App.jsx` + `Sidebar`).
+- All routes are `ProtectedRoute` (validates `GET /auth/me` with `PageSkeleton` while loading) + `RoleGuard`.
+- Lazy: `React.lazy` + `Suspense fallback={<PageSkeleton/>}` for every page.
 
 ---
 
@@ -286,7 +313,7 @@ curl http://localhost:5173/ | head -20
 - **Run backend from project root**, not `backend/`: `backend.structured_data.api` import fails otherwise. Always `cd 735-Tennis-Explore && python -m uvicorn backend.structured_data.api:app ...`
 - **Port mismatch**: `backend/structured_data/database.py` defaults to `5433`, but postgres default is `5432`. Override via `backend/.env` `STRUCTURED_DB_PORT=5432`.
 - **CORS**: backend allows `allow_origins=["*"]` in `backend/structured_data/api.py`. For credentialed prod, set explicit frontend origin.
-- **JWT secret**: change `JWT_SECRET` in production, keep >=32 chars.
+- **JWT secret**: change `JWT_SECRET` in production, keep >=32 chars. Refresh is 7d, access 24h.
 - **Windows psql**: add `C:\Program Files\PostgreSQL\16\bin` to `PATH` or use full path.
 
 ---

@@ -3,7 +3,7 @@ import { Icon } from '@/components/shared/icon'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { NAV_ITEMS } from '@/data/constants'
+import { NAV_ITEMS, ADMIN_NAV_ITEM } from '@/data/constants'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 
@@ -12,7 +12,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }) {
   const navigate = useNavigate()
   const { user } = useAuth()
   const isAdmin = (user?.role || '').toLowerCase() === 'admin'
-  const navItems = isAdmin ? [...NAV_ITEMS ] : NAV_ITEMS
+  const navItems = isAdmin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : NAV_ITEMS
 
   const handleNavigate = (path) => {
     navigate(path)

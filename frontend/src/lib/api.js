@@ -71,4 +71,15 @@ export async function deleteUser(token, id) {
   }
 }
 
+export async function updateOwnPassword(token, payload) {
+  const res = await fetch(`${API_BASE}/auth/me/password`, {
+    method: "PUT",
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || "Failed to update password");
+  return data;
+}
+
 export { API_BASE };
