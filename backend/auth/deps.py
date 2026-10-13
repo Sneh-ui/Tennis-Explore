@@ -40,7 +40,7 @@ def get_current_user_db(credentials: HTTPAuthorizationCredentials = Depends(secu
             cur.execute(
                 """
                 SELECT id, name, email, role, profile_pic, created_at
-                FROM auth.users
+                FROM app_auth.users
                 WHERE id = %s
                 """,
                 (user_id,),

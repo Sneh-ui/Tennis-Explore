@@ -7,6 +7,16 @@ export const NAV_ITEMS = [
 
 export const ADMIN_NAV_ITEM = { id: 'admin-users', icon: 'admin_panel_settings', label: 'User Management', path: '/users' }
 
+export const EXTERNAL_APPS = [
+  { id: 'teamworks', icon: 'groups', label: 'Teamworks', url: 'https://teamworksapp.com/login-portal' },
+  { id: 'ams', icon: 'analytics', label: 'AMS', url: 'https://ams.ausport.gov.au' },
+  { id: 'teambuildr', icon: 'fitness_center', label: 'Teambuildr', url: 'https://app-v3.teambuildr.com/login' },
+  { id: 'bounce', icon: 'sports_tennis', label: 'Bounce', url: 'https://bounce.tennis.com.au/login/', filled: true, bold: true },
+  { id: 'coaches-box', icon: 'strategy', label: 'Coaches Box', url: 'https://players.ausopen.com' },
+  { id: 'tennismove', icon: 'directions_run', label: 'TennisMove', url: null },
+  { id: 'ace', icon: 'workspace_premium', label: 'ACE', url: 'http://www.acetennisaustralia.com/' },
+]
+
 export const DASHBOARD_STATS = [
   { label: 'Matches Played', value: '124', subtext: '↑ 12% vs last season', icon: 'sports_tennis', subtextIcon: 'trending_up', subtextColor: 'text-primary' },
   { label: 'Performance Score', value: '92.4', subtext: 'Top 5% of league', icon: 'bolt', subtextColor: 'text-primary-container' },

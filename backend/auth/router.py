@@ -57,7 +57,7 @@ def login(payload: LoginRequest):
             cur.execute(
                 """
                 SELECT id, name, email, password_hash, role, profile_pic
-                FROM auth.users
+                FROM app_auth.users
                 WHERE LOWER(email) = LOWER(%s)
                 """,
                 (email,),
@@ -118,7 +118,7 @@ def refresh(payload: RefreshRequest):
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, name, email, role FROM auth.users WHERE id=%s",
+                "SELECT id, name, email, role FROM app_auth.users WHERE id=%s",
                 (user_id,),
             )
             row = cur.fetchone()
@@ -172,13 +172,13 @@ def update_own_password(payload: UpdatePasswordRequest, current_user: dict = Dep
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT password_hash FROM auth.users WHERE id=%s", (current_user["id"],))
+            cur.execute("SELECT password_hash FROM app_auth.users WHERE id=%s", (current_user["id"],))
             row = cur.fetchone()
             if not row or not verify_password(payload.current_password, row["password_hash"]):
                 raise HTTPException(status_code=400, detail="Current password is incorrect")
             new_hash = hash_password(payload.new_password)
             cur.execute(
-                "UPDATE auth.users SET password_hash=%s, updated_at=NOW() WHERE id=%s",
+                "UPDATE app_auth.users SET password_hash=%s, updated_at=NOW() WHERE id=%s",
                 (new_hash, current_user["id"]),
             )
             conn.commit()
@@ -213,7 +213,7 @@ def list_users(admin: dict = Depends(require_admin)):
             cur.execute(
                 """
                 SELECT id, name, email, role, profile_pic, created_at
-                FROM auth.users
+                FROM app_auth.users
                 ORDER BY id ASC
                 """
             )
@@ -244,14 +244,14 @@ def create_user(payload: CreateUserRequest, admin: dict = Depends(require_admin)
     try:
         with conn.cursor() as cur:
             # check duplicate email
-            cur.execute("SELECT id FROM auth.users WHERE LOWER(email)=LOWER(%s)", (payload.email.strip(),))
+            cur.execute("SELECT id FROM app_auth.users WHERE LOWER(email)=LOWER(%s)", (payload.email.strip(),))
             if cur.fetchone():
                 raise HTTPException(status_code=409, detail="Email already exists")
 
             hashed = hash_password(payload.password)
             cur.execute(
                 """
-                INSERT INTO auth.users (name, email, password_hash, role, profile_pic)
+                INSERT INTO app_auth.users (name, email, password_hash, role, profile_pic)
                 VALUES (%s, %s, %s, %s, %s)
                 RETURNING id, name, email, role, profile_pic
                 """,
@@ -276,7 +276,7 @@ def get_user(user_id: int, admin: dict = Depends(require_admin)):
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, name, email, role, profile_pic FROM auth.users WHERE id=%s",
+                "SELECT id, name, email, role, profile_pic FROM app_auth.users WHERE id=%s",
                 (user_id,),
             )
             row = cur.fetchone()
@@ -292,7 +292,7 @@ def update_user(user_id: int, payload: UpdateUserRequest, admin: dict = Depends(
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, email FROM auth.users WHERE id=%s", (user_id,))
+            cur.execute("SELECT id, email FROM app_auth.users WHERE id=%s", (user_id,))
             existing = cur.fetchone()
             if not existing:
                 raise HTTPException(status_code=404, detail="User not found")
@@ -310,7 +310,7 @@ def update_user(user_id: int, payload: UpdateUserRequest, admin: dict = Depends(
                 email = payload.email.strip().lower()
                 # check duplicate
                 cur.execute(
-                    "SELECT id FROM auth.users WHERE LOWER(email)=LOWER(%s) AND id<>%s",
+                    "SELECT id FROM app_auth.users WHERE LOWER(email)=LOWER(%s) AND id<>%s",
                     (email, user_id),
                 )
                 if cur.fetchone():
@@ -338,7 +338,7 @@ def update_user(user_id: int, payload: UpdateUserRequest, admin: dict = Depends(
 
             values.append(user_id)
             cur.execute(
-                f"UPDATE auth.users SET {', '.join(fields)}, updated_at=NOW() WHERE id=%s RETURNING id, name, email, role, profile_pic",
+                f"UPDATE app_auth.users SET {', '.join(fields)}, updated_at=NOW() WHERE id=%s RETURNING id, name, email, role, profile_pic",
                 tuple(values),
             )
             row = cur.fetchone()
@@ -357,7 +357,7 @@ def delete_user(user_id: int, admin: dict = Depends(require_admin)):
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("DELETE FROM auth.users WHERE id=%s RETURNING id", (user_id,))
+            cur.execute("DELETE FROM app_auth.users WHERE id=%s RETURNING id", (user_id,))
             row = cur.fetchone()
             if not row:
                 raise HTTPException(status_code=404, detail="User not found")

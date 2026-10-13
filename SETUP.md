@@ -108,15 +108,15 @@ psql -h localhost -p 5432 -U <DB_USER> -c "CREATE DATABASE tennis_rankings_v2;"
 # run migrations from project root
 psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -f backend/structured_data/sql/01_create_schema.sql
 psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -f backend/auth/sql/01_create_users.sql
-# for local dev to reset roles: DROP TABLE IF EXISTS auth.users CASCADE; then re-run 01
+# for local dev to reset roles: DROP TABLE IF EXISTS app_auth.users CASCADE; then re-run 01
 
 # verify (idempotent seed, no python seeder needed)
-psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -c "SELECT id, name, email, role FROM auth.users ORDER BY id;"
+psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -c "SELECT id, name, email, role FROM app_auth.users ORDER BY id;"
 # 1 | Admin       | admin@tennisexplore.au | admin  <- default admin, can add others
 # 2 | Alex Rivera | coach@tennisexplore.au | coach
 # role is VARCHAR(20) DEFAULT 'coach', only admin/coach (app validates, no DB enum)
 
-psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -c "\dt auth.*"
+psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -c "\dt app_auth.*"
 psql -h localhost -p 5432 -U <DB_USER> -d tennis_rankings_v2 -c "SELECT version();"
 ```
 

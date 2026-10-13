@@ -6,9 +6,9 @@
 -- accounts so no separate python seeder is required on server.
 -- ============================================================
 
-CREATE SCHEMA IF NOT EXISTS auth;
+CREATE SCHEMA IF NOT EXISTS app_auth;
 
-CREATE TABLE IF NOT EXISTS auth.users (
+CREATE TABLE IF NOT EXISTS app_auth.users (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -19,10 +19,10 @@ CREATE TABLE IF NOT EXISTS auth.users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_email ON auth.users(email);
+CREATE INDEX IF NOT EXISTS idx_users_email ON app_auth.users(email);
 
 -- Keep updated_at in sync on UPDATE
-CREATE OR REPLACE FUNCTION auth.set_updated_at()
+CREATE OR REPLACE FUNCTION app_auth.set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -30,17 +30,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trg_users_updated_at ON auth.users;
+DROP TRIGGER IF EXISTS trg_users_updated_at ON app_auth.users;
 CREATE TRIGGER trg_users_updated_at
-    BEFORE UPDATE ON auth.users
-    FOR EACH ROW EXECUTE FUNCTION auth.set_updated_at();
+    BEFORE UPDATE ON app_auth.users
+    FOR EACH ROW EXECUTE FUNCTION app_auth.set_updated_at();
 
 -- ------------------------------------------------------------
 -- Seed default users (idempotent)
 -- Default admin: admin@tennisexplore.au / admin123 (role: admin)
 -- Hashes generated with bcrypt (passlib, cost 12)
 -- ------------------------------------------------------------
-INSERT INTO auth.users (name, email, password_hash, role)
+INSERT INTO app_auth.users (name, email, password_hash, role)
 VALUES (
     'Admin',
     'admin@tennisexplore.au',
@@ -51,7 +51,7 @@ ON CONFLICT (email) DO NOTHING;
 
 -- Additional coach user for testing (password: coach123)
 -- Hash for 'coach123' generated with bcrypt cost 12
-INSERT INTO auth.users (name, email, password_hash, role)
+INSERT INTO app_auth.users (name, email, password_hash, role)
 VALUES (
     'Coach',
     'coach@tennisexplore.au',

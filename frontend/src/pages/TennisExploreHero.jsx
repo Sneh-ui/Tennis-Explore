@@ -3,53 +3,10 @@ import { Link, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { savePendingQuery } from "@/lib/pending-query";
+import { EXTERNAL_APPS } from "@/data/constants";
 
 /* ─────────────────────────── DATA ─────────────────────────── */
-const APPS = [
-  {
-    icon: "groups",
-    label: "Teamworks",
-    url: "https://teamworksapp.com/login-portal"
-  },
-
-  {
-    icon: "analytics",
-    label: "AMS",
-    url: "https://ams.ausport.gov.au"
-  },
-
-  {
-    icon: "fitness_center",
-    label: "Teambuildr",
-    url: "https://app-v3.teambuildr.com/login"
-  },
-
-  {
-    icon: "sports_tennis",
-    label: "Bounce",
-    url: "https://bounce.tennis.com.au/login/",
-    filled: true,
-    bold: true
-  },
-
-  {
-    icon: "strategy",
-    label: "Coaches Box",
-    url: "https://players.ausopen.com"
-  },
-
-  {
-    icon: "directions_run",
-    label: "TennisMove",
-    url: null
-  },
-
-  {
-    icon: "workspace_premium",
-    label: "ACE",
-    url: "http://www.acetennisaustralia.com/"
-  },
-];
+const APPS = EXTERNAL_APPS;
 
 const HINTS = [
   "Match Prediction AI",
