@@ -6,7 +6,8 @@ import { Card } from '@/components/ui/card'
 import { Icon } from '@/components/shared'
 import { INITIAL_MESSAGES, CHAT_SUGGESTIONS } from '@/data/constants'
 import { consumePendingQuery } from '@/lib/pending-query'
-import { structuredChatRequest } from '@/lib/api'
+import { structuredChatRequest, saveChatHistory, getChatHistory } from '@/lib/api'
+import { useAuthStore } from '@/store/auth-store'
 import { cn } from '@/lib/utils'
 
 function ChatMessage({ msg }) {
@@ -110,8 +111,12 @@ function SuggestionsPanel() {
 
 export default function AIChatbotPage() {
   const location = useLocation()
+  const accessToken = useAuthStore((state) => state.accessToken)
   const [messages, setMessages] = useState(INITIAL_MESSAGES)
   const [input, setInput] = useState('')
+  const [showHistory, setShowHistory] = useState(false)
+  const [chatHistory, setChatHistory] = useState([])
+  const [historyLoading, setHistoryLoading] = useState(false)
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
@@ -141,14 +146,19 @@ const handleSend = async () => {
 
   try {
     const data = await structuredChatRequest(question)
+    const answer = data.answer || 'No answer was returned.'
 
     setMessages((prev) => [
       ...prev,
       {
         role: 'ai',
-        content: data.answer || 'No answer was returned.',
+        content: answer,
       },
     ])
+
+    if (accessToken) {
+      await saveChatHistory(accessToken, question, answer)
+    }
   } catch (error) {
     setMessages((prev) => [
       ...prev,
@@ -159,6 +169,22 @@ const handleSend = async () => {
     ])
   }
 }
+  const handleViewHistory = async () => {
+    if (!accessToken) return
+
+    setHistoryLoading(true)
+
+    try {
+      const history = await getChatHistory(accessToken)
+      setChatHistory(history)
+      setShowHistory(true)
+    } catch (error) {
+      console.error('Failed to load chat history:', error)
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -183,20 +209,77 @@ const handleSend = async () => {
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="text-primary">
-            <Icon name="history" className="text-lg" /> View Session History
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-primary"
+            onClick={() => {
+              if (showHistory) {
+                setShowHistory(false)
+              } else {
+                handleViewHistory()
+              }
+            }}
+            disabled={historyLoading}
+          >
+            <Icon name={showHistory ? "arrow_back" : "history"} className="text-lg" />
+            {historyLoading
+              ? 'Loading...'
+              : showHistory
+                ? 'Back to Chat'
+                : 'View Session History'}
           </Button>
         </div>
 
-        {/* Messages */}
+        {/* Messages / Session History */}
         <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-te-surface-container-low scrollbar-thin">
-          {messages.map((msg, i) => (
-            <ChatMessage key={i} msg={msg} />
-          ))}
-          <div ref={messagesEndRef} />
+          {showHistory ? (
+            <div className="max-w-4xl mx-auto space-y-4">
+              <div className="mb-6">
+                <h3 className="text-title-lg text-foreground">Session History</h3>
+                <p className="text-sm text-muted-foreground">
+                  Your previous AI Assistant questions and answers.
+                </p>
+              </div>
+
+              {chatHistory.length === 0 ? (
+                <Card className="p-6 text-center text-muted-foreground">
+                  No chat history found.
+                </Card>
+              ) : (
+                chatHistory.map((item) => (
+                  <Card key={item.id} className="p-5 space-y-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">You asked</p>
+                      <p className="font-medium text-foreground">{item.question}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">AI Assistant</p>
+                      <p className="text-sm text-foreground whitespace-pre-line">
+                        {item.answer}
+                      </p>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(item.created_at).toLocaleString()}
+                    </p>
+                  </Card>
+                ))
+              )}
+            </div>
+          ) : (
+            <>
+              {messages.map((msg, i) => (
+                <ChatMessage key={i} msg={msg} />
+              ))}
+              <div ref={messagesEndRef} />
+            </>
+          )}
         </div>
 
         {/* Input */}
+        {!showHistory && (
         <div className="p-6 border-t border-te-outline-variant bg-card shrink-0">
           <div className="max-w-4xl mx-auto relative">
             <Textarea
@@ -213,6 +296,7 @@ const handleSend = async () => {
             </div>
           </div>
         </div>
+        )}
       </div>
 
       <SuggestionsPanel />

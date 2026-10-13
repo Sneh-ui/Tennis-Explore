@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.structured_data.queries import (
@@ -8,6 +8,12 @@ from backend.structured_data.queries import (
 )
 from backend.structured_data.structured_chat import answer_structured_question
 from backend.auth.router import router as auth_router
+from backend.auth.deps import get_current_user_db
+from backend.structured_data.chat_history import (
+    save_chat_history,
+    get_chat_history,
+)
+from pydantic import BaseModel
 
 app = FastAPI(
     title="Tennis EXPLORE Structured Data API",
@@ -76,3 +82,30 @@ def latest_player_rankings(player_id: int):
 def structured_chat(question: str):
     result = answer_structured_question(question)
     return result
+
+
+
+class ChatHistoryRequest(BaseModel):
+    question: str
+    answer: str
+
+
+@app.post("/chat/history")
+def create_chat_history(
+    payload: ChatHistoryRequest,
+    current_user: dict = Depends(get_current_user_db),
+):
+    return save_chat_history(
+        current_user["id"],
+        payload.question,
+        payload.answer,
+    )
+
+
+@app.get("/chat/history")
+def chat_history(
+    current_user: dict = Depends(get_current_user_db),
+):
+    return {
+        "history": get_chat_history(current_user["id"])
+    }

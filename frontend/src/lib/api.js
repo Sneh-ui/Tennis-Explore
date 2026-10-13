@@ -98,3 +98,33 @@ export async function structuredChatRequest(question) {
   return data;
 }
 export { API_BASE };
+
+export async function saveChatHistory(token, question, answer) {
+  const res = await fetch(`${API_BASE}/chat/history`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ question, answer }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(data.detail || "Failed to save chat history");
+  }
+
+  return data;
+}
+
+export async function getChatHistory(token) {
+  const res = await fetch(`${API_BASE}/chat/history`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(data.detail || "Failed to load chat history");
+  }
+
+  return data.history || [];
+}
