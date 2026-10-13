@@ -82,4 +82,19 @@ export async function updateOwnPassword(token, payload) {
   return data;
 }
 
+export async function structuredChatRequest(question) {
+  const params = new URLSearchParams({ question });
+
+  const res = await fetch(`${API_BASE}/structured/chat?${params.toString()}`, {
+    method: "POST",
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(data.detail || "Failed to get structured data response");
+  }
+
+  return data;
+}
 export { API_BASE };

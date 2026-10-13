@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Icon } from '@/components/shared'
 import { INITIAL_MESSAGES, CHAT_SUGGESTIONS } from '@/data/constants'
 import { consumePendingQuery } from '@/lib/pending-query'
+import { structuredChatRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
 function ChatMessage({ msg }) {
@@ -128,19 +129,36 @@ export default function AIChatbotPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const handleSend = () => {
-    if (!input.trim()) return
+const handleSend = async () => {
+  const question = input.trim()
+  if (!question) return
+
+  setMessages((prev) => [
+    ...prev,
+    { role: 'user', content: question },
+  ])
+  setInput('')
+
+  try {
+    const data = await structuredChatRequest(question)
+
     setMessages((prev) => [
       ...prev,
-      { role: 'user', content: input },
       {
         role: 'ai',
-        content: "I'm analyzing the data you requested. This is a demo response — in production, this would connect to the analytics engine for real-time insights.",
+        content: data.answer || 'No answer was returned.',
       },
     ])
-    setInput('')
+  } catch (error) {
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: 'ai',
+        content: `Unable to retrieve the structured data response: ${error.message}`,
+      },
+    ])
   }
-
+}
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
