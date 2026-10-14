@@ -1,10 +1,14 @@
+
 import os
+from pathlib import Path
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load the environment variables from backend/.env
+ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+load_dotenv(ENV_FILE)
 
 
 def get_db_connection():
@@ -22,4 +26,3 @@ def get_db_connection():
         password=os.getenv("STRUCTURED_DB_PASSWORD"),
         cursor_factory=RealDictCursor,
     )
-

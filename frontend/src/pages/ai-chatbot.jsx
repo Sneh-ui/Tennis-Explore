@@ -4,9 +4,17 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
 import { Icon } from '@/components/shared'
+
+
+import {
+  automaticChatRequest,
+  saveChatHistory,
+  getChatHistory,
+} from '@/lib/api'
+
 import { INITIAL_MESSAGES, CHAT_SUGGESTIONS } from '@/data/constants'
 import { consumePendingQuery } from '@/lib/pending-query'
-import { structuredChatRequest, saveChatHistory, getChatHistory } from '@/lib/api'
+
 import { useAuthStore } from '@/store/auth-store'
 import { cn } from '@/lib/utils'
 
@@ -73,8 +81,44 @@ function ChatMessage({ msg }) {
             </table>
           </div>
         )}
+        
+        {/* Sources from the unstructured RAG pipeline */}
+        {Array.isArray(msg.sources) && msg.sources.length > 0 && (
+          <div className="border-t border-te-outline-variant pt-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Icon name="description" className="text-primary" />
+              <p className="text-sm font-bold text-foreground">
+                Sources ({msg.sources.length})
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {msg.sources.map((source, index) => (
+                <div
+                  key={`${source.file_name}-${source.page_number}-${source.slide_number}-${index}`}
+                  className="rounded-lg bg-te-surface-container-low p-3"
+                >
+                  <p className="text-xs font-medium text-foreground break-words">
+                    {source.file_name}
+                  </p>
+
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {source.page_number != null
+                      ? `Page ${source.page_number}`
+                      : source.slide_number != null
+                        ? `Slide ${source.slide_number}`
+                        : 'Document reference'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {msg.followUp && <p className="text-body-md text-muted-foreground">{msg.followUp}</p>}
+
+
+        
       </Card>
     </div>
   )
@@ -134,9 +178,12 @@ export default function AIChatbotPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+
 const handleSend = async () => {
   const question = input.trim()
   if (!question) return
+
+  const selectedMode = 'auto'
 
   setMessages((prev) => [
     ...prev,
@@ -145,16 +192,23 @@ const handleSend = async () => {
   setInput('')
 
   try {
-    const data = await structuredChatRequest(question)
-    const answer = data.answer || 'No answer was returned.'
+    
+    const data = await automaticChatRequest(question, accessToken)
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: 'ai',
-        content: answer,
-      },
-    ])
+
+    
+const answer = data.answer || 'No answer was returned.'
+const sources = Array.isArray(data.sources) ? data.sources : []
+
+setMessages((prev) => [
+  ...prev,
+  {
+    role: 'ai',
+    content: answer,
+    sources,
+  },
+])
+
 
     if (accessToken) {
       await saveChatHistory(accessToken, question, answer)
@@ -164,11 +218,12 @@ const handleSend = async () => {
       ...prev,
       {
         role: 'ai',
-        content: `Unable to retrieve the structured data response: ${error.message}`,
+        content: `Unable to retrieve the ${selectedMode} data response: ${error.message}`,
       },
     ])
   }
 }
+
   const handleViewHistory = async () => {
     if (!accessToken) return
 
@@ -281,6 +336,9 @@ const handleSend = async () => {
         {/* Input */}
         {!showHistory && (
         <div className="p-6 border-t border-te-outline-variant bg-card shrink-0">
+
+
+
           <div className="max-w-4xl mx-auto relative">
             <Textarea
               value={input}

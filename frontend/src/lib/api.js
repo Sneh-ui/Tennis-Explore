@@ -1,5 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
+const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 function authHeaders(token) {
   return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 }
@@ -127,4 +126,52 @@ export async function getChatHistory(token) {
   }
 
   return data.history || [];
+}
+
+
+export async function unstructuredChatRequest(question, token) {
+  const res = await fetch(`${API_BASE}/unstructured/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ question }),
+  })
+
+  const data = await res.json().catch(() => ({}))
+
+  if (!res.ok) {
+    throw new Error(
+      typeof data.detail === 'string'
+        ? data.detail
+        : 'Failed to get unstructured chatbot response'
+    )
+  }
+
+  return data
+}
+
+
+export async function automaticChatRequest(question, token) {
+  const res = await fetch(`${API_BASE}/chat/auto`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ question }),
+  })
+
+  const data = await res.json().catch(() => ({}))
+
+  if (!res.ok) {
+    throw new Error(
+      typeof data.detail === 'string'
+        ? data.detail
+        : 'Failed to get automatic chatbot response'
+    )
+  }
+
+  return data
 }
