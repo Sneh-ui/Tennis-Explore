@@ -30,7 +30,7 @@ function ChatMessage({ msg }) {
         <Icon name="smart_toy" className="text-sm text-foreground" />
       </div>
       <Card className={cn('p-5 space-y-5', msg.chart && 'border-l-4 border-l-primary')} style={{ borderBottomLeftRadius: 4 }}>
-        <p className="text-body-md text-foreground">{msg.content}</p>
+        <p className="text-body-md text-foreground whitespace-pre-line">{msg.content}</p>
 
         {/* Inline bar chart */}
         {msg.chart && (

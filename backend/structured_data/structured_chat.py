@@ -12,6 +12,8 @@ from backend.structured_data.queries import (
     get_top_ranked_players,
     get_player_profile,
     get_latest_filtered_player_rankings,
+    get_player_count,
+    get_players,
 )
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
@@ -379,6 +381,8 @@ Allowed intents:
 - best_ranking
 - top_rankings
 - player_profile
+- player_count
+- list_players
 - unknown
 
 Use "latest_rankings" for the latest/current/most recent
@@ -399,7 +403,16 @@ Use "top_rankings" when the user asks who the top-ranked
 players are, for example top 5 ATP singles players.
 
 Use "player_profile" for basic player information such as
-country, gender, or birth year.
+country, gender, birth year, or when the user asks to find,
+show, or identify one specific player.
+
+Use "player_count" when the user asks how many players are
+in the database or asks for the total number of players.
+
+Use "list_players" when the user asks to show, list, or display
+a number of players from the database without requesting a
+ranking organisation. Put the requested number in "limit".
+If no number is given for a general player list, use 10.
 
 The structured database does NOT contain match statistics such as
 aces, double faults, winners, unforced errors, serve percentage,
@@ -431,7 +444,10 @@ Dates:
 For top-N questions:
 - Return the requested number as "limit".
 - If the user says "top players" without a number, use 5.
-- Otherwise use null when this is not a top-ranking question.
+- For top-ranking questions, return the requested number as "limit".
+- For general player-list questions, also return the requested number as "limit".
+- If the user asks to list/show players without a number, use 10.
+- Otherwise use null.
 
 Return ONLY valid JSON with exactly these keys:
 {{
@@ -888,6 +904,40 @@ def answer_period_comparison(
         f"which is {change}."
     )
 
+
+def answer_player_count():
+    total = get_player_count()
+    return f"There are {total:,} players in the structured database."
+
+
+def answer_player_list(limit=10):
+    limit = limit or 10
+    limit = max(1, min(int(limit), 100))
+
+    rows = get_players(limit=limit)
+
+    if not rows:
+        return "No players are available in the structured database."
+
+    lines = [f"Here are {len(rows)} players from the database:"]
+
+    for index, row in enumerate(rows, start=1):
+        details = []
+
+        if row.get("country"):
+            country = format_country(row["country"])
+            if country:
+                details.append(country)
+
+        if row.get("birth_year"):
+            details.append(str(row["birth_year"]))
+
+        suffix = f" ({', '.join(details)})" if details else ""
+        lines.append(f"{index}. {row['full_name']}{suffix}")
+
+    return "\n".join(lines)
+
+
 def answer_top_rankings(
     source,
     ranking_type="singles",
@@ -999,7 +1049,21 @@ def answer_player_profile(player, question):
 
         return f"Gender information is not available for {name}."
 
-    return f"Additional profile information is not available for {name}."
+    details = []
+
+    if profile.get("country"):
+        details.append(f"Country: {format_country(profile['country'])}")
+
+    if profile.get("gender"):
+        details.append(f"Gender: {profile['gender']}")
+
+    if profile.get("birth_year"):
+        details.append(f"Birth year: {profile['birth_year']}")
+
+    if details:
+        return f"{name}\n" + "\n".join(f"- {detail}" for detail in details)
+
+    return f"{name} was found in the player database, but additional profile information is not available."
 def format_country(country):
     if not country:
         return None
@@ -1139,6 +1203,18 @@ def answer_structured_question(question):
             "answer": answer,
         }
 
+    if intent == "player_count":
+        return {
+            "status": "answered",
+            "answer": answer_player_count(),
+        }
+
+    if intent == "list_players":
+        return {
+            "status": "answered",
+            "answer": answer_player_list(limit=limit or 10),
+        }
+
     if intent == "unknown" and not (
         wants_average
         or wants_comparison
@@ -1208,9 +1284,12 @@ def answer_structured_question(question):
         return {
             "status": "ambiguous_player",
             "answer": (
-                f"I found multiple players matching '{player_name}': "
-                + ", ".join(choices)
-                + ". Please provide the full player name."
+                f"I found multiple players matching '{player_name}':\n"
+                + "\n".join(
+                    f"{index}. {choice}"
+                    for index, choice in enumerate(choices, start=1)
+                )
+                + "\nPlease provide the full player name."
             ),
         }
 

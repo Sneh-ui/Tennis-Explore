@@ -1,6 +1,47 @@
 from backend.structured_data.database import get_db_connection
 
 
+
+def get_player_count():
+    """Return the total number of master players."""
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) AS total FROM core.players;")
+            row = cur.fetchone()
+            return row["total"] if row else 0
+    finally:
+        conn.close()
+
+
+def get_players(limit=10):
+    """Return a simple alphabetical list of master players."""
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    player_id,
+                    full_name,
+                    country,
+                    birth_year
+                FROM core.players
+                WHERE full_name IS NOT NULL
+                  AND TRIM(full_name) <> ''
+                  AND full_name ~ '[A-Za-z]'
+                  AND full_name NOT LIKE '?%%'
+                ORDER BY full_name
+                LIMIT %s;
+                """,
+                (limit,),
+            )
+            return [dict(row) for row in cur.fetchall()]
+    finally:
+        conn.close()
+
 def search_players(name, limit=10):
     """
     Search master players by name.
