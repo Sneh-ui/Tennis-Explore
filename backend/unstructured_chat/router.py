@@ -19,6 +19,13 @@ GENERATOR_FILE = (
     / "production_supabase_generate_answer.py"
 )
 
+VIDEO_SEARCH_FILE = (
+    Path(__file__).resolve().parents[1]
+    / "documents_v2"
+    / "06_retrieval"
+    / "video_supabase_search.py"
+)
+
 rag_lock = threading.Lock()
 
 
@@ -46,35 +53,85 @@ def load_pipeline():
     return module, embedding_model, reranker
 
 
+def _get_video_candidates(question: str, embedding_model) -> list:
+    try:
+        spec = importlib.util.spec_from_file_location(
+            "video_supabase_search", VIDEO_SEARCH_FILE
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        candidates = mod.get_video_candidates(question, embedding_model)
+        for c in candidates:
+            c.setdefault("page_number", None)
+            c.setdefault("slide_number", None)
+        return candidates or []
+    except Exception as exc:
+        logger.warning("Video Supabase search failed: %s", exc)
+        return []
+
+
+def _split_reranked(ranked: list):
+    """Split reranked candidates into doc and video lists."""
+    doc_items = [c for c in ranked if c.get("file_type") != "video"]
+    video_items = [c for c in ranked if c.get("file_type") == "video"]
+    return doc_items, video_items
+
+
 @router.post("/chat")
 def unstructured_chat(payload: ChatRequest):
     try:
         with rag_lock:
             rag, embedding_model, reranker = load_pipeline()
 
-            candidates = rag.retrieval.get_candidates(
+            doc_candidates = rag.retrieval.get_candidates(
                 payload.question, embedding_model
             )
 
-            if not candidates:
-                return {"status": "no_evidence", "answer": rag.REFUSAL}
+            video_candidates = _get_video_candidates(payload.question, embedding_model)
+            candidates = doc_candidates + video_candidates
 
+            logger.info(
+                "Candidates: %d doc + %d video = %d total",
+                len(doc_candidates), len(video_candidates), len(candidates)
+            )
+
+            if not candidates:
+                return {
+                    "status": "no_evidence",
+                    "answer": rag.REFUSAL,
+                    "video_sources_included": False,
+                }
+
+            # Rerank the full pool (doc + video) together
             ranked = rag.retrieval.rerank(
                 payload.question, candidates, reranker
             )
 
-            evidence = rag.get_focused_evidence(
-                payload.question, ranked
-            )
+            # Split: doc chunks go through get_focused_evidence (hits unstructured DB)
+            # video chunks are used directly — they're not in unstructured.document_chunks
+            doc_ranked, video_ranked = _split_reranked(ranked)
+
+            doc_evidence = []
+            if doc_ranked:
+                doc_evidence = rag.get_focused_evidence(payload.question, doc_ranked)
+
+            # Use top-3 video chunks directly as evidence
+            video_evidence = video_ranked[:3]
+
+            evidence = doc_evidence + video_evidence
 
             if not evidence:
-                return {"status": "no_evidence", "answer": rag.REFUSAL}
+                return {
+                    "status": "no_evidence",
+                    "answer": rag.REFUSAL,
+                    "video_sources_included": False,
+                }
 
-            
         answer = rag.generate_answer(payload.question, evidence)
 
         sources = []
         seen_sources = set()
+        video_sources_included = False
 
         for item in evidence:
             file_name = item.get("source_file")
@@ -89,6 +146,9 @@ def unstructured_chat(payload: ChatRequest):
 
             seen_sources.add(source_key)
 
+            if file_type == "video":
+                video_sources_included = True
+
             sources.append({
                 "file_name": file_name,
                 "file_type": file_type,
@@ -100,8 +160,8 @@ def unstructured_chat(payload: ChatRequest):
             "status": "answered" if answer else "no_answer",
             "answer": answer or "No answer generated.",
             "sources": sources if answer and answer != rag.REFUSAL else [],
+            "video_sources_included": video_sources_included,
         }
-
 
     except Exception:
         logger.exception("Unstructured chatbot failed")
@@ -109,4 +169,3 @@ def unstructured_chat(payload: ChatRequest):
             status_code=503,
             detail="Unstructured chatbot unavailable. Check Supabase and Ollama.",
         )
-
