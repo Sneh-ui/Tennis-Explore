@@ -1,5 +1,5 @@
+import os
 import json
-
 import requests
 
 from backend.structured_data.queries import (
@@ -16,16 +16,31 @@ from backend.structured_data.queries import (
     get_players,
 )
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "mistral"
+# Hosted Ollama Cloud API
+OLLAMA_URL = "https://ollama.com/api/generate"
+
+# Use a hosted model instead of the local model on Render.
+# You can override this in Render Environment Variables.
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:31b")
 
 
 def ask_ollama(prompt):
     """
-    Send a prompt to the local Ollama model.
+    Send a prompt to the hosted Ollama API.
+    Requires OLLAMA_API_KEY in the server environment.
     """
+    api_key = os.environ.get("72372d79c90449368209a42d4deab954.rmG_zQLQcDNfZ3wG3XO750X9")
+
+    if not api_key:
+        raise RuntimeError(
+            "OLLAMA_API_KEY is missing from the server environment."
+        )
     response = requests.post(
         OLLAMA_URL,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
         json={
             "model": OLLAMA_MODEL,
             "prompt": prompt,
@@ -36,7 +51,13 @@ def ask_ollama(prompt):
 
     response.raise_for_status()
 
-    return response.json().get("response", "").strip()
+    result = response.json()
+    answer = result.get("response", "").strip()
+
+    if not answer:
+        raise RuntimeError("Ollama returned an empty response.")
+
+    return answer
 
 def answer_latest_rankings(
     player,
