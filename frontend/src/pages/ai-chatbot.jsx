@@ -10,6 +10,7 @@ import {
   automaticChatRequest,
   saveChatHistory,
   getChatHistory,
+  getOllamaInfo,
 } from '@/lib/api'
 
 import { INITIAL_MESSAGES, CHAT_SUGGESTIONS } from '@/data/constants'
@@ -161,6 +162,7 @@ export default function AIChatbotPage() {
   const [showHistory, setShowHistory] = useState(false)
   const [chatHistory, setChatHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(false)
+  const [modelInfo, setModelInfo] = useState(null)
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
@@ -177,6 +179,12 @@ export default function AIChatbotPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  useEffect(() => {
+    getOllamaInfo()
+      .then(setModelInfo)
+      .catch(() => setModelInfo(null))
+  }, [])
 
 
 const handleSend = async () => {
@@ -258,7 +266,18 @@ setMessages((prev) => [
               <Icon name="psychology" />
             </div>
             <div>
-              <h2 className="text-title-lg text-foreground">AI Assistant</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-title-lg text-foreground">AI Assistant</h2>
+                {modelInfo?.model && (
+                  <span
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-te-surface-container-low border border-te-outline-variant text-xs font-medium text-muted-foreground"
+                    title={modelInfo.mode === 'cloud' ? 'Cloud model' : 'Local model'}
+                  >
+                    <Icon name="smart_toy" className="text-xs" />
+                    {modelInfo.model}
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <span className="w-2 h-2 bg-primary rounded-full animate-pulse" /> Online &amp; Ready
               </p>

@@ -96,6 +96,13 @@ export async function structuredChatRequest(question) {
 
   return data;
 }
+export async function getOllamaInfo() {
+  const res = await fetch(`${API_BASE}/ollama/info`)
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.detail || 'Failed to fetch model info')
+  return data // {model, mode, is_cloud, url, structured_model, unstructured_model}
+}
+
 export { API_BASE };
 
 export async function saveChatHistory(token, question, answer) {

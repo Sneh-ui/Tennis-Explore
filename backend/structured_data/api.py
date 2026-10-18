@@ -16,6 +16,7 @@ from backend.structured_data.chat_history import (
     save_chat_history,
     get_chat_history,
 )
+from backend.shared.ollama_client import get_ollama_info
 from pydantic import BaseModel
 
 app = FastAPI(
@@ -38,6 +39,25 @@ app.include_router(unstructured_router)
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+@app.get("/ollama/info")
+def ollama_info():
+    """Expose current Ollama model for frontend UI (no API key)."""
+    from backend.structured_data.structured_chat import OLLAMA_MODEL as struct_model, OLLAMA_URL as struct_url
+    from backend.documents_v2.config import OLLAMA_MODEL_NAME as doc_model, OLLAMA_URL as doc_url
+
+    info = get_ollama_info(url=struct_url, model=struct_model)
+    doc_info = get_ollama_info(url=doc_url, model=doc_model)
+    return {
+        **info,
+        "structured_model": struct_model,
+        "structured_url": struct_url,
+        "structured_mode": info["mode"],
+        "unstructured_model": doc_model,
+        "unstructured_url": doc_url,
+        "unstructured_mode": doc_info["mode"],
+    }
 
 
 @app.get("/players/search")
