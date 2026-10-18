@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import requests
 
 from backend.structured_data.queries import (
@@ -18,9 +19,19 @@ from backend.structured_data.queries import (
 
 # Ollama Cloud API
 OLLAMA_URL = "https://ollama.com/api/chat"
-
-# Keep the existing Render environment variable.
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:31b")
+
+SUPPORTED_INTENTS = {
+    "latest_rankings",
+    "ranking_history",
+    "filtered_rankings",
+    "best_ranking",
+    "top_rankings",
+    "player_profile",
+    "player_count",
+    "list_players",
+    "unknown",
+}
 
 
 def ask_ollama(prompt):
@@ -62,6 +73,7 @@ def ask_ollama(prompt):
         raise RuntimeError("Ollama returned an empty response.")
 
     return answer
+
 
 def answer_latest_rankings(
     player,
@@ -135,29 +147,34 @@ def answer_latest_rankings(
             f"{requested_source}{metric} data is not available "
             f"for {name}."
         )
+
     if requested_metric == "ranking":
-        if source:
-            heading = f"{name}'s latest available {source.upper()} rankings:"
-        else:
-            heading = f"{name}'s latest available rankings:"
+        heading = (
+            f"{name}'s latest available {source.upper()} rankings:"
+            if source
+            else f"{name}'s latest available rankings:"
+        )
 
     elif requested_metric == "rating":
-        if source:
-            heading = f"{name}'s latest available {source.upper()} ratings:"
-        else:
-            heading = f"{name}'s latest available ratings:"
+        heading = (
+            f"{name}'s latest available {source.upper()} ratings:"
+            if source
+            else f"{name}'s latest available ratings:"
+        )
 
     else:
-        if source:
-            heading = f"{name}'s latest available {source.upper()} ranking and rating data:"
-        else:
-            heading = f"{name}'s latest available ranking and rating data:"
+        heading = (
+            f"{name}'s latest available {source.upper()} ranking and rating data:"
+            if source
+            else f"{name}'s latest available ranking and rating data:"
+        )
+
     return heading + "\n" + "\n".join(lines)
+
+
 def format_ranking_history(rankings):
-    """
-    Convert database ranking rows into clean evidence for Ollama.
-    Only fields that actually contain values are included.
-    """
+    """Convert ranking rows into readable text."""
+
     formatted_rows = []
 
     for row in rankings:
@@ -211,7 +228,10 @@ def answer_ranking_history(
         )
 
         if requested:
-            return f"{requested} ranking or rating history is not available for this player."
+            return (
+                f"{requested} ranking or rating history "
+                f"is not available for this player."
+            )
 
         return "Ranking or rating history is not available for this player."
 
@@ -233,14 +253,10 @@ def answer_ranking_history(
                 values.append(f"rank {row['rank']}")
 
             if row["points"] is not None:
-                values.append(
-                    f"{format_number(row['points'])} points"
-                )
+                values.append(f"{format_number(row['points'])} points")
 
             if row["rating"] is not None:
-                values.append(
-                    f"rating {format_number(row['rating'])}"
-                )
+                values.append(f"rating {format_number(row['rating'])}")
 
             if values:
                 lines.append(
@@ -251,15 +267,12 @@ def answer_ranking_history(
         sections.append("\n".join(lines))
 
     return "\n\n".join(sections)
-def resolve_player_name(name, limit=10):
-    """
-    Find possible players from a full, partial,
-    or slightly misspelled name.
 
-    The function avoids silently choosing between
-    uncertain player matches.
-    """
-    name = name.strip()
+
+def resolve_player_name(name, limit=10):
+    """Find an exact, partial, or fuzzy player-name match."""
+
+    name = (name or "").strip()
 
     if not name:
         return {
@@ -267,11 +280,9 @@ def resolve_player_name(name, limit=10):
             "players": [],
         }
 
-    # First try normal database search.
     players = search_players(name, limit=limit)
 
     if not players:
-        # If normal search fails, try fuzzy matching.
         fuzzy_players = fuzzy_search_players(name, limit=5)
 
         if not fuzzy_players:
@@ -289,8 +300,6 @@ def resolve_player_name(name, limit=10):
             else 0.0
         )
 
-        # Automatically accept only a strong
-        # and clearly better fuzzy match.
         if best_score >= 0.60 and best_score - second_score >= 0.10:
             return {
                 "status": "matched",
@@ -298,8 +307,6 @@ def resolve_player_name(name, limit=10):
                 "match_type": "fuzzy",
             }
 
-        # If even the best fuzzy result is weak, this is not
-        # a meaningful player match.
         if best_score < 0.35:
             return {
                 "status": "not_found",
@@ -323,15 +330,7 @@ def resolve_player_name(name, limit=10):
             "players": meaningful_players,
             "match_type": "fuzzy",
         }
-        # Several possible fuzzy matches:
-        # return them instead of guessing.
-        return {
-            "status": "ambiguous",
-            "players": fuzzy_players,
-            "match_type": "fuzzy",
-        }
 
-    # Check for an exact full-name match.
     exact_matches = [
         player
         for player in players
@@ -345,8 +344,6 @@ def resolve_player_name(name, limit=10):
             "match_type": "exact",
         }
 
-    # If normal search returned only one player,
-    # the partial name safely identifies that player.
     if len(players) == 1:
         return {
             "status": "matched",
@@ -354,50 +351,187 @@ def resolve_player_name(name, limit=10):
             "match_type": "partial",
         }
 
-    # Multiple normal-search results:
-    # ask the user to clarify.
     return {
         "status": "ambiguous",
         "players": players,
         "match_type": "partial",
     }
+
+
+def _extract_json_object(response):
+    """Parse JSON even if the model adds Markdown fences or extra text."""
+
+    response = (response or "").strip()
+
+    if response.startswith("```"):
+        response = re.sub(
+            r"^```(?:json)?\s*",
+            "",
+            response,
+            flags=re.IGNORECASE,
+        )
+        response = re.sub(r"\s*```$", "", response)
+
+    try:
+        parsed = json.loads(response)
+        if isinstance(parsed, dict):
+            return parsed
+    except json.JSONDecodeError:
+        pass
+
+    # Recover the first JSON object from a response with extra text.
+    start = response.find("{")
+
+    if start != -1:
+        try:
+            parsed, _ = json.JSONDecoder().raw_decode(response[start:])
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError:
+            pass
+
+    return {}
+
+
+def _extract_player_name(question):
+    """
+    Extract a likely player-name phrase from common question formats.
+    This does not claim the player exists; database matching happens later.
+    """
+
+    text = (question or "").strip()
+
+    patterns = [
+        r"^\s*who\s+is\s+(.+?)\s*[?.!]*\s*$",
+        r"^\s*who\s+was\s+(.+?)\s*[?.!]*\s*$",
+        r"^\s*tell\s+me\s+about\s+(.+?)\s*[?.!]*\s*$",
+        r"^\s*show\s+me\s+(.+?)\s*[?.!]*\s*$",
+        r"^\s*find\s+(.+?)\s*[?.!]*\s*$",
+        r"^\s*give\s+me\s+the\s+profile\s+of\s+(.+?)\s*[?.!]*\s*$",
+        r"^\s*what\s+is\s+the\s+profile\s+of\s+(.+?)\s*[?.!]*\s*$",
+        r"^\s*what\s+is\s+(.+?)'s\s+(?:latest\s+|current\s+|most\s+recent\s+)?"
+        r"(?:atp|wta|itf|utr\s+)?(?:singles\s+|doubles\s+)?"
+        r"(?:ranking|rank|rating|profile)\s*[?.!]*\s*$",
+        r"^\s*(?:what\s+is|what's)\s+the\s+"
+        r"(?:latest\s+|current\s+|most\s+recent\s+)?"
+        r"(?:atp|wta|itf|utr\s+)?(?:singles\s+|doubles\s+)?"
+        r"(?:ranking|rank|rating)\s+of\s+(.+?)\s*[?.!]*\s*$",
+        r"^\s*(?:latest|current|recent)\s+"
+        r"(?:atp|wta|itf|utr\s+)?(?:singles\s+|doubles\s+)?"
+        r"(?:ranking|rank|rating)\s+of\s+(.+?)\s*[?.!]*\s*$",
+        r"^\s*(?:ranking|rank|rating)\s+of\s+(.+?)\s*[?.!]*\s*$",
+    ]
+
+    for pattern in patterns:
+        match = re.match(pattern, text, flags=re.IGNORECASE)
+
+        if match:
+            candidate = match.group(1).strip(" \t\r\n?.!,")
+            candidate = re.sub(
+                r"\s+(?:today|currently|right now)$",
+                "",
+                candidate,
+                flags=re.IGNORECASE,
+            ).strip()
+
+            if candidate:
+                return candidate
+
+    return None
+
+
+def _fallback_intent(question, understood=None):
+    """Infer a supported intent from clear wording when routing fails."""
+
+    text = (question or "").lower()
+    understood = understood or {}
+
+    source = understood.get("source")
+    ranking_type = understood.get("ranking_type")
+
+    if re.search(r"\bhow many players\b|\bplayer count\b|\btotal players\b", text):
+        return "player_count"
+
+    if re.search(r"\b(list|show|display)\b.*\bplayers\b", text):
+        if not source and not re.search(r"\b(top|ranked|ranking)\b", text):
+            return "list_players"
+
+    if re.search(r"\btop\s+\d*\s*players\b|\btop-ranked players\b|\btop ranked players\b", text):
+        return "top_rankings"
+
+    if re.search(r"\b(best|highest|peak|career-best|career best)\b", text):
+        if re.search(r"\b(rank|ranking|rating)\b", text):
+            return "best_ranking"
+
+    if re.search(r"\b(average|mean)\b", text):
+        if re.search(r"\b(rank|ranking|rating)\b", text):
+            return "ranking_history"
+
+    if re.search(
+        r"\b(compare|comparison|improve|improved|decline|declined|"
+        r"change|changed|increase|increased|decrease|decreased)\b",
+        text,
+    ):
+        if re.search(r"\b(rank|ranking|rating)\b", text):
+            return "ranking_history"
+
+    if re.search(r"\b(history|historical|over time|trend)\b", text):
+        if re.search(r"\b(rank|ranking|rating)\b", text):
+            return "ranking_history"
+
+    if re.search(r"\b(atp|wta|itf|utr)\b", text) and re.search(
+        r"\b(rank|ranking|rating)\b",
+        text,
+    ):
+        if re.search(r"\b(best|highest|peak|career-best|career best)\b", text):
+            return "best_ranking"
+
+        if re.search(
+            r"\b(history|historical|between|from|during|in \d{4}|on \d{1,2}\b)",
+            text,
+        ):
+            return "filtered_rankings"
+
+        if re.search(r"\b(top|top-ranked|top ranked)\b", text):
+            return "top_rankings"
+
+        if re.search(r"\b(latest|current|recent|today|now)\b", text):
+            return "latest_rankings"
+
+        if source or ranking_type:
+            return "filtered_rankings"
+
+    if re.search(
+        r"\b(latest|current|recent|most recent)\b",
+        text,
+    ) and re.search(r"\b(rank|ranking|rating)\b", text):
+        return "latest_rankings"
+
+    if re.search(r"\b(rank|ranking|rating)\b", text):
+        if re.search(r"\b(of|for)\b", text):
+            return "latest_rankings"
+
+    if re.search(
+        r"\b(who is|who was|tell me about|player profile|"
+        r"country|nationality|born|birth year|gender|represents)\b",
+        text,
+    ):
+        return "player_profile"
+
+    # A simple "Who is [name]?" question is a profile request.
+    if re.match(r"^\s*who\s+is\s+.+", text):
+        return "player_profile"
+
+    return "unknown"
+
+
 def understand_question(question):
     prompt = f"""
 You are a routing assistant for Tennis EXPLORE.
 
-Your job is ONLY to understand a structured tennis-data question.
-
-Extract:
-1. intent
-2. exact player-name text if present
-3. source if mentioned
-4. ranking type if mentioned
-5. start date if clearly requested
-6. end date if clearly requested
-7. requested top-N limit if applicable
-
-IMPORTANT:
-- Copy the player name exactly as entered.
-- Never correct or invent a player name.
-- Never invent dates.
-- Never invent missing information.
-- Do not answer the tennis question.
-- Do not generate SQL.
-- Database values will be retrieved separately.
-
-Supported sources:
-ATP
-WTA
-ITF
-UTR
-
-Supported ranking types:
-singles
-doubles
-
-Only return "singles" or "doubles" when the user explicitly states it.
-If the user asks for UTR rating without saying singles or doubles,
-ranking_type MUST be null. Do not assume singles.
+Identify the user's intent using ONLY the allowed intents below.
+Do not answer the question. Do not invent facts or dates.
+Copy any player name exactly as entered.
 
 Allowed intents:
 - latest_rankings
@@ -410,73 +544,43 @@ Allowed intents:
 - list_players
 - unknown
 
-Use "latest_rankings" for the latest/current/most recent
-ranking or rating of a player.
+Rules:
+- Latest/current/most recent player ranking or rating:
+  latest_rankings.
+- Ranking or rating history over time:
+  ranking_history.
+- Ranking/rating with a specified organisation, ranking type,
+  date, month, year, or date range:
+  filtered_rankings.
+- Best, highest, peak, or career-best numerical ranking:
+  best_ranking.
+- Top-ranked players, such as the top 5 ATP singles players:
+  top_rankings.
+- Basic information about one player, or "Who is [name]?":
+  player_profile.
+- Number of players in the database:
+  player_count.
+- List players without asking for a ranking:
+  list_players.
+- Match statistics such as aces, double faults, winners,
+  unforced errors, serve percentage, break points, match scores,
+  or shot statistics:
+  unknown.
 
-Use "ranking_history" for a player's overall ranking or
-rating history or changes over time when no specific
-source/date filter is requested.
+Sources: ATP, WTA, ITF, UTR.
+Ranking types: singles, doubles.
+Only use a source or ranking type if it is mentioned in the question.
+For UTR ratings, do not assume a ranking type.
+Copy the player's name exactly; never invent or correct it.
+For general player lists, use limit 10 if no number is specified.
+For top rankings, use limit 5 if no number is specified.
+For all other questions, use null for limit unless a number is requested.
+Dates must be YYYY-MM-DD when an exact date is explicitly stated.
+Do not guess dates.
 
-Use "filtered_rankings" when the user asks for ranking or
-rating information for a particular source, ranking type,
-date, month, year, or date range.
-
-Use "best_ranking" when the user asks for the player's best,
-highest, peak, or career-best numerical ranking.
-
-Use "top_rankings" when the user asks who the top-ranked
-players are, for example top 5 ATP singles players.
-
-Use "player_profile" for basic player information such as
-country, gender, birth year, or when the user asks to find,
-show, or identify one specific player.
-
-Use "player_count" when the user asks how many players are
-in the database or asks for the total number of players.
-
-Use "list_players" when the user asks to show, list, or display
-a number of players from the database without requesting a
-ranking organisation. Put the requested number in "limit".
-If no number is given for a general player list, use 10.
-
-The structured database does NOT contain match statistics such as
-aces, double faults, winners, unforced errors, serve percentage,
-break points, match scores, or shot statistics.
-
-Questions asking for those values MUST use "unknown", even when
-a player name is present.
-
-A question about a specific organisation such as ATP, WTA, ITF or UTR
-is still a supported structured-data question even if that player may
-not have data from that organisation. Do NOT use "unknown" simply
-because the requested organisation may be unavailable.
-
-For example:
-"What is Cruz Hewitt's WTA singles ranking?"
-must be classified as "filtered_rankings" with source "WTA" and
-ranking_type "singles". The database will determine whether data exists.
-
-Use "unknown" if the question cannot be answered using
-player identity/profile or ranking/rating data.
-
-Dates:
-- Return dates as YYYY-MM-DD when an exact date is clearly stated.
-- If a whole month is requested, return the first day as
-  start_date and the last day as end_date.
-- If no date is requested, use null.
-- Do not guess an unspecified date.
-
-For top-N questions:
-- Return the requested number as "limit".
-- If the user says "top players" without a number, use 5.
-- For top-ranking questions, return the requested number as "limit".
-- For general player-list questions, also return the requested number as "limit".
-- If the user asks to list/show players without a number, use 10.
-- Otherwise use null.
-
-Return ONLY valid JSON with exactly these keys:
+Return ONLY a JSON object with these keys:
 {{
-  "intent": "...",
+  "intent": "unknown",
   "player_name": null,
   "source": null,
   "ranking_type": null,
@@ -485,24 +589,114 @@ Return ONLY valid JSON with exactly these keys:
   "limit": null
 }}
 
+Replace the values with the correct extracted values.
+
 USER QUESTION:
 {question}
 """.strip()
 
     response = ask_ollama(prompt)
+    data = _extract_json_object(response)
 
+    intent = data.get("intent")
+
+    if not isinstance(intent, str) or intent not in SUPPORTED_INTENTS:
+        intent = "unknown"
+
+    player_name = data.get("player_name")
+    if not isinstance(player_name, str) or not player_name.strip():
+        player_name = None
+    else:
+        player_name = player_name.strip()
+
+    source = data.get("source")
+    if isinstance(source, str):
+        source = source.strip().upper()
+        if source not in {"ATP", "WTA", "ITF", "UTR"}:
+            source = None
+    else:
+        source = None
+
+    ranking_type = data.get("ranking_type")
+    if isinstance(ranking_type, str):
+        ranking_type = ranking_type.strip().lower()
+        if ranking_type not in {"singles", "doubles"}:
+            ranking_type = None
+    else:
+        ranking_type = None
+
+    start_date = data.get("start_date")
+    end_date = data.get("end_date")
+
+    if not isinstance(start_date, str) or not start_date.strip():
+        start_date = None
+
+    if not isinstance(end_date, str) or not end_date.strip():
+        end_date = None
+
+    limit = data.get("limit")
     try:
-        return json.loads(response)
-    except json.JSONDecodeError:
-        return {
-            "intent": "unknown",
-            "player_name": None,
-            "source": None,
-            "ranking_type": None,
-            "start_date": None,
-            "end_date": None,
-            "limit": None,
-        }
+        limit = int(limit) if limit is not None else None
+    except (TypeError, ValueError):
+        limit = None
+
+    # Recover common fields if the model failed to extract them.
+    question_lower = question.lower()
+
+    if not source:
+        source_match = re.search(r"\b(atp|wta|itf|utr)\b", question_lower)
+        if source_match:
+            source = source_match.group(1).upper()
+
+    if not ranking_type:
+        type_match = re.search(r"\b(singles|doubles)\b", question_lower)
+        if type_match:
+            ranking_type = type_match.group(1).lower()
+
+    if not player_name:
+        player_name = _extract_player_name(question)
+
+    if not limit:
+        limit_match = re.search(r"\btop\s+(\d+)\b", question_lower)
+        if not limit_match:
+            limit_match = re.search(
+                r"\b(?:list|show|display)\s+(\d+)\s+players\b",
+                question_lower,
+            )
+
+        if limit_match:
+            limit = int(limit_match.group(1))
+
+    # Use deterministic routing when the model returns unknown.
+    if intent == "unknown":
+        intent = _fallback_intent(
+            question,
+            {
+                "source": source,
+                "ranking_type": ranking_type,
+            },
+        )
+
+    # Keep explicit organisation/date-filtered ranking requests
+    # on the filtered-ranking path.
+    if (
+        intent == "latest_rankings"
+        and re.search(r"\b(atp|wta|itf|utr)\b", question_lower)
+        and re.search(r"\b(on|between|during|from)\b", question_lower)
+    ):
+        intent = "filtered_rankings"
+
+    return {
+        "intent": intent,
+        "player_name": player_name,
+        "source": source,
+        "ranking_type": ranking_type,
+        "start_date": start_date,
+        "end_date": end_date,
+        "limit": limit,
+    }
+
+
 def format_date(value):
     if value is None:
         return ""
@@ -585,8 +779,6 @@ def answer_filtered_rankings(
 
         return f"Ranking data is not available for {name}."
 
-    # If a period contains multiple records, return the records
-    # rather than pretending there was only one value.
     lines = []
 
     for row in rows:
@@ -599,20 +791,23 @@ def answer_filtered_rankings(
             )
 
     if not lines:
-        return f"The requested ranking or rating information is not available for {name}."
+        return (
+            f"The requested ranking or rating information "
+            f"is not available for {name}."
+        )
 
     if start_date and end_date:
         if start_date == end_date:
             period = f"on {format_date(start_date)}"
         else:
-            period = f"from {format_date(start_date)} to {format_date(end_date)}"
-
+            period = (
+                f"from {format_date(start_date)} "
+                f"to {format_date(end_date)}"
+            )
     elif start_date:
         period = f"on {format_date(start_date)}"
-
     elif end_date:
         period = f"up to {format_date(end_date)}"
-
     else:
         period = "in the available data"
 
@@ -621,20 +816,17 @@ def answer_filtered_rankings(
             f"{name}'s available {source.upper()} "
             f"{ranking_type.lower()} data {period}:"
         )
-
     elif source:
         heading = (
-            f"{name}'s available {source.upper()} data "
-            f"{period}:"
+            f"{name}'s available {source.upper()} data {period}:"
         )
-
     else:
         heading = (
-            f"{name}'s available ranking and rating data "
-            f"{period}:"
+            f"{name}'s available ranking and rating data {period}:"
         )
 
     return heading + "\n" + "\n".join(lines)
+
 
 def answer_best_ranking(player, source=None, ranking_type=None):
     row = get_best_player_ranking(
@@ -666,6 +858,8 @@ def answer_best_ranking(player, source=None, ranking_type=None):
         f"is {row['rank']}, recorded on "
         f"{format_date(row['snapshot_date'])}."
     )
+
+
 def answer_ranking_change(
     player,
     source=None,
@@ -674,12 +868,8 @@ def answer_ranking_change(
     end_date=None,
     requested_metric="ranking",
 ):
-    """
-    Compare the earliest and latest available values in a requested period.
+    """Compare the earliest and latest available values in a period."""
 
-    For ranking, a lower numerical rank is better.
-    For rating, a higher numerical rating is higher.
-    """
     rows = get_filtered_player_rankings(
         player["player_id"],
         source=source,
@@ -713,9 +903,13 @@ def answer_ranking_change(
         difference = first_value - last_value
 
         if difference > 0:
-            change_text = f"improved by {format_number(abs(difference))} positions"
+            change_text = (
+                f"improved by {format_number(abs(difference))} positions"
+            )
         elif difference < 0:
-            change_text = f"declined by {format_number(abs(difference))} positions"
+            change_text = (
+                f"declined by {format_number(abs(difference))} positions"
+            )
         else:
             change_text = "did not change"
 
@@ -754,10 +948,8 @@ def answer_average_ranking(
     start_date=None,
     end_date=None,
 ):
-    """
-    Calculate the arithmetic mean of available ranking snapshots
-    in an explicitly requested period.
-    """
+    """Calculate the average ranking in an explicitly requested period."""
+
     name = player["full_name"]
 
     if not start_date or not end_date:
@@ -782,7 +974,6 @@ def answer_average_ranking(
             f"in the requested period."
         )
 
-    # Do not mix different ranking organisations/types in one average.
     combinations = {
         (row["source"], row["ranking_type"])
         for row in rows
@@ -795,7 +986,6 @@ def answer_average_ranking(
         )
 
     average = sum(float(row["rank"]) for row in rows) / len(rows)
-
     first = rows[0]
 
     return (
@@ -815,14 +1005,8 @@ def answer_period_comparison(
     end_date=None,
     requested_metric="ranking",
 ):
-    """
-    Compare the last available value in the first requested period
-    with the last available value in the second requested period.
+    """Compare available values from the start and end periods."""
 
-    The router currently represents a multi-month request as one
-    start/end range, so we compare the last snapshot in the start
-    month with the last snapshot in the end month.
-    """
     if not start_date or not end_date:
         return answer_ranking_change(
             player,
@@ -903,12 +1087,15 @@ def answer_period_comparison(
         difference = first_number - second_number
 
         if difference > 0:
-            change = f"an improvement of {format_number(difference)} positions"
+            change = (
+                f"an improvement of {format_number(difference)} positions"
+            )
         elif difference < 0:
-            change = f"a decline of {format_number(abs(difference))} positions"
+            change = (
+                f"a decline of {format_number(abs(difference))} positions"
+            )
         else:
             change = "no change"
-
     else:
         difference = second_number - first_number
 
@@ -1017,6 +1204,7 @@ def answer_top_rankings(
             f"{(ranking_type or 'singles').lower()} ranking "
             f"available in the database ({actual_date})."
         )
+
     if snapshot_date:
         intro = (
             f"In the {source.upper()} "
@@ -1040,9 +1228,7 @@ def answer_top_rankings(
             else ""
         )
 
-        lines.append(
-            f"{row['rank']}. {row['full_name']}{country}"
-        )
+        lines.append(f"{row['rank']}. {row['full_name']}{country}")
 
     return "\n".join(lines)
 
@@ -1060,6 +1246,7 @@ def answer_player_profile(player, question):
         if profile.get("country"):
             country = format_country(profile["country"])
             return f"{name} represents {country}."
+
         return f"Country information is not available for {name}."
 
     if "birth" in question_lower or "born" in question_lower:
@@ -1086,9 +1273,16 @@ def answer_player_profile(player, question):
         details.append(f"Birth year: {profile['birth_year']}")
 
     if details:
-        return f"{name}\n" + "\n".join(f"- {detail}" for detail in details)
+        return f"{name}\n" + "\n".join(
+            f"- {detail}" for detail in details
+        )
 
-    return f"{name} was found in the player database, but additional profile information is not available."
+    return (
+        f"{name} was found in the player database, "
+        f"but additional profile information is not available."
+    )
+
+
 def format_country(country):
     if not country:
         return None
@@ -1115,78 +1309,86 @@ def format_country(country):
     }
 
     return country_names.get(country.upper(), country)
+
+
 def answer_structured_question(question):
     understood = understand_question(question)
 
-    intent = understood.get("intent")
+    intent = understood.get("intent", "unknown")
     player_name = understood.get("player_name")
     source = understood.get("source")
     ranking_type = understood.get("ranking_type")
     start_date = understood.get("start_date")
     end_date = understood.get("end_date")
     limit = understood.get("limit")
-    # A question using "on <date>" means an exact snapshot date.
-    # The router may return only start_date, so make the range exact.
+
+    question_lower = question.lower()
+
+    # If the question explicitly says "on <date>",
+    # use an exact date range when the router found the date.
     if (
         start_date
         and not end_date
-        and " on " in f" {question.lower()} "
+        and re.search(r"\bon\b", question_lower)
     ):
         end_date = start_date
-    question_lower = question.lower()
+
     requested_metric = None
-    wants_average = "average" in question_lower
 
-    wants_comparison = (
-        "compare" in question_lower
-        or "compared" in question_lower
-        or "comparison" in question_lower
-    )
-
-    wants_change = (
-        "improved" in question_lower
-        or "improve" in question_lower
-        or "declined" in question_lower
-        or "decline" in question_lower
-        or "changed" in question_lower
-        or "change" in question_lower
-        or "increased" in question_lower
-        or "increase" in question_lower
-        or "decreased" in question_lower
-        or "decrease" in question_lower
-    )
-
-    if "rating" in question_lower:
+    if re.search(r"\brating\b", question_lower):
         requested_metric = "rating"
-    elif "ranking" in question_lower or "rank" in question_lower:
+    elif re.search(r"\branking\b|\brank\b", question_lower):
         requested_metric = "ranking"
+
+    wants_average = bool(
+        re.search(r"\baverage\b|\bmean\b", question_lower)
+    )
+
+    wants_comparison = bool(
+        re.search(r"\bcompare\b|\bcompared\b|\bcomparison\b", question_lower)
+    )
+
+    wants_change = bool(
+        re.search(
+            r"\b(improved|improve|declined|decline|changed|change|"
+            r"increased|increase|decreased|decrease)\b",
+            question_lower,
+        )
+    )
+
     unsupported_terms = {
-        "ace": "Aces",
-        "aces": "Aces",
         "double fault": "Double-fault",
         "double faults": "Double-fault",
-        "winner": "Winner",
-        "winners": "Winner",
         "unforced error": "Unforced-error",
         "unforced errors": "Unforced-error",
         "serve percentage": "Serve-percentage",
         "break point": "Break-point",
         "break points": "Break-point",
         "matches won": "Match win/loss",
-        "matches did": "Match win/loss",
         "match wins": "Match win/loss",
         "wins": "Match win/loss",
         "losses": "Match win/loss",
         "win loss": "Match win/loss",
         "win/loss": "Match win/loss",
+        "aces": "Aces",
+        "ace": "Aces",
+        "winners": "Winner",
+        "winner": "Winner",
+        "match score": "Match-score",
+        "match scores": "Match-score",
+        "shot statistics": "Shot-statistics",
     }
 
     for term, label in unsupported_terms.items():
-        if term in question_lower:
+        if re.search(rf"\b{re.escape(term)}\b", question_lower):
             return {
                 "status": "unsupported",
-                "answer": f"{label} information is not available in the structured data.",
+                "answer": (
+                    f"{label} information is not available "
+                    f"in the structured data."
+                ),
             }
+
     if "overall" in question_lower and (
         "top" in question_lower
         or "best" in question_lower
@@ -1201,11 +1403,29 @@ def answer_structured_question(question):
                 "over a particular period?"
             ),
         }
-    # Questions such as:
+
+    # Deterministic fallback if routing still could not identify intent.
+    if intent == "unknown":
+        intent = _fallback_intent(
+            question,
+            {
+                "source": source,
+                "ranking_type": ranking_type,
+            },
+        )
+
+    # Recover a player name when the model omitted it.
+    if not player_name:
+        player_name = _extract_player_name(question)
+
+    # Handle questions such as:
     # "Who was ranked number 1 in ATP singles on 2 March 2026?"
     ranked_number_question = (
-        ("who was ranked" in question_lower or "who is ranked" in question_lower)
-        and source
+        (
+            "who was ranked" in question_lower
+            or "who is ranked" in question_lower
+        )
+        and bool(source)
     )
 
     if ranked_number_question:
@@ -1240,16 +1460,6 @@ def answer_structured_question(question):
             "answer": answer_player_list(limit=limit or 10),
         }
 
-    if intent == "unknown" and not (
-        wants_average
-        or wants_comparison
-        or wants_change
-    ):
-        return {
-            "status": "unsupported",
-            "answer": "The requested information is not available in the structured data.",
-        }
-
     if intent == "top_rankings":
         requested_date = None
 
@@ -1268,6 +1478,17 @@ def answer_structured_question(question):
         return {
             "status": "answered",
             "answer": answer,
+        }
+
+    if intent == "unknown" and not (
+        wants_average or wants_comparison or wants_change
+    ):
+        return {
+            "status": "unsupported",
+            "answer": (
+                "The requested information is not available "
+                "in the structured data."
+            ),
         }
 
     if not player_name:
@@ -1330,12 +1551,7 @@ def answer_structured_question(question):
             end_date=end_date,
         )
 
-        return {
-            "status": "answered",
-            "answer": answer,
-        }
-
-    if wants_comparison:
+    elif wants_comparison:
         answer = answer_period_comparison(
             player,
             source=source,
@@ -1345,12 +1561,7 @@ def answer_structured_question(question):
             requested_metric=requested_metric or "ranking",
         )
 
-        return {
-            "status": "answered",
-            "answer": answer,
-        }
-
-    if wants_change:
+    elif wants_change:
         answer = answer_ranking_change(
             player,
             source=source,
@@ -1360,23 +1571,21 @@ def answer_structured_question(question):
             requested_metric=requested_metric or "ranking",
         )
 
-        return {
-            "status": "answered",
-            "answer": answer,
-        }
-    if intent == "latest_rankings":
+    elif intent == "latest_rankings":
         answer = answer_latest_rankings(
             player,
             source=source,
             ranking_type=ranking_type,
             requested_metric=requested_metric,
         )
+
     elif intent == "ranking_history":
         answer = answer_ranking_history(
             player_id,
             source=source,
             ranking_type=ranking_type,
         )
+
     elif intent == "filtered_rankings":
         answer = answer_filtered_rankings(
             player,
@@ -1397,7 +1606,13 @@ def answer_structured_question(question):
         answer = answer_player_profile(player, question)
 
     else:
-        answer = "The requested information is not available in the structured data."
+        return {
+            "status": "unsupported",
+            "answer": (
+                "The requested information is not available "
+                "in the structured data."
+            ),
+        }
 
     return {
         "status": "answered",
