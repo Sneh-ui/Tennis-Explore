@@ -16,54 +16,52 @@ from backend.structured_data.queries import (
     get_players,
 )
 
-# Hosted Ollama Cloud API
-OLLAMA_URL = "https://ollama.com/api/generate"
+# Ollama Cloud API
+OLLAMA_URL = "https://ollama.com/api/chat"
 
-# Use a hosted model instead of the local model on Render.
-# You can override this in Render Environment Variables.
+# Keep the existing Render environment variable.
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:31b")
 
-def ask_ollama(prompt):
-"""
-Send a prompt to Ollama Cloud using its chat API.
-Requires OLLAMA_API_KEY in the server environment.
-"""
-api_key = os.environ.get("OLLAMA_API_KEY")
 
-if not api_key:
-    raise RuntimeError(
-        "OLLAMA_API_KEY is missing from the server environment."
+def ask_ollama(prompt):
+    """Send a prompt to Ollama Cloud using its chat API."""
+
+    api_key = os.environ.get("OLLAMA_API_KEY")
+
+    if not api_key:
+        raise RuntimeError(
+            "OLLAMA_API_KEY is missing from the server environment."
+        )
+
+    response = requests.post(
+        OLLAMA_URL,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": OLLAMA_MODEL,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            "stream": False,
+            "format": "json",
+        },
+        timeout=120,
     )
 
-response = requests.post(
-    "https://ollama.com/api/chat",
-    headers={
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    },
-    json={
-        "model": OLLAMA_MODEL,
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-        "stream": False,
-        "format": "json",
-    },
-    timeout=120,
-)
+    response.raise_for_status()
 
-response.raise_for_status()
+    result = response.json()
+    answer = result.get("message", {}).get("content", "").strip()
 
-result = response.json()
-answer = result.get("message", {}).get("content", "").strip()
+    if not answer:
+        raise RuntimeError("Ollama returned an empty response.")
 
-if not answer:
-    raise RuntimeError("Ollama returned an empty response.")
-
-return answer
+    return answer
 
 def answer_latest_rankings(
     player,
