@@ -17,7 +17,6 @@ from backend.structured_data.queries import (
     get_players,
 )
 
-# Ollama Cloud API
 OLLAMA_URL = "https://ollama.com/api/chat"
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:31b")
 
@@ -30,13 +29,12 @@ SUPPORTED_INTENTS = {
     "player_profile",
     "player_count",
     "list_players",
+    "general_tennis",
     "unknown",
 }
 
 
-def ask_ollama(prompt):
-    """Send a prompt to Ollama Cloud using its chat API."""
-
+def ask_ollama(prompt, json_mode=True):
     api_key = os.environ.get("OLLAMA_API_KEY")
 
     if not api_key:
@@ -44,23 +42,27 @@ def ask_ollama(prompt):
             "OLLAMA_API_KEY is missing from the server environment."
         )
 
+    payload = {
+        "model": OLLAMA_MODEL,
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        "stream": False,
+    }
+
+    if json_mode:
+        payload["format"] = "json"
+
     response = requests.post(
         OLLAMA_URL,
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         },
-        json={
-            "model": OLLAMA_MODEL,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ],
-            "stream": False,
-            "format": "json",
-        },
+        json=payload,
         timeout=120,
     )
 
@@ -73,6 +75,41 @@ def ask_ollama(prompt):
         raise RuntimeError("Ollama returned an empty response.")
 
     return answer
+
+
+def answer_general_tennis_question(question):
+    prompt = f"""
+You are Tennis Explore's helpful tennis assistant.
+
+Answer the user's question directly, naturally, and helpfully.
+
+You can help with:
+- Beginner tennis advice
+- Tennis footwork and movement
+- Training and practice routines
+- Tennis rules and techniques
+- Fitness and match preparation
+- Tennis equipment and basic guidance
+- General tennis knowledge
+- Tennis strategies and tactics
+
+Instructions:
+- Answer the actual question instead of asking for a player name unnecessarily.
+- Give practical, beginner-friendly advice when appropriate.
+- Use numbered steps or bullet points when useful.
+- Explain technical concepts in simple language.
+- Do not claim that general advice came from the database.
+- Do not invent database rankings, statistics, or player records.
+- If the question requires current rankings or specific database records,
+  explain that the answer depends on the available structured data.
+- If you are uncertain about a fact, say so instead of inventing information.
+- Keep the answer relevant to the user's question.
+
+User question:
+{question}
+""".strip()
+
+    return ask_ollama(prompt, json_mode=False)
 
 
 def answer_latest_rankings(
@@ -173,8 +210,6 @@ def answer_latest_rankings(
 
 
 def format_ranking_history(rankings):
-    """Convert ranking rows into readable text."""
-
     formatted_rows = []
 
     for row in rankings:
@@ -270,8 +305,6 @@ def answer_ranking_history(
 
 
 def resolve_player_name(name, limit=10):
-    """Find an exact, partial, or fuzzy player-name match."""
-
     name = (name or "").strip()
 
     if not name:
@@ -359,8 +392,6 @@ def resolve_player_name(name, limit=10):
 
 
 def _extract_json_object(response):
-    """Parse JSON even if the model adds Markdown fences or extra text."""
-
     response = (response or "").strip()
 
     if response.startswith("```"):
@@ -379,7 +410,6 @@ def _extract_json_object(response):
     except json.JSONDecodeError:
         pass
 
-    # Recover the first JSON object from a response with extra text.
     start = response.find("{")
 
     if start != -1:
@@ -394,11 +424,6 @@ def _extract_json_object(response):
 
 
 def _extract_player_name(question):
-    """
-    Extract a likely player-name phrase from common question formats.
-    This does not claim the player exists; database matching happens later.
-    """
-
     text = (question or "").strip()
 
     patterns = [
@@ -441,8 +466,6 @@ def _extract_player_name(question):
 
 
 def _fallback_intent(question, understood=None):
-    """Infer a supported intent from clear wording when routing fails."""
-
     text = (question or "").lower()
     understood = understood or {}
 
@@ -456,7 +479,10 @@ def _fallback_intent(question, understood=None):
         if not source and not re.search(r"\b(top|ranked|ranking)\b", text):
             return "list_players"
 
-    if re.search(r"\btop\s+\d*\s*players\b|\btop-ranked players\b|\btop ranked players\b", text):
+    if re.search(
+        r"\btop\s+\d*\s*players\b|\btop-ranked players\b|\btop ranked players\b",
+        text,
+    ):
         return "top_rankings"
 
     if re.search(r"\b(best|highest|peak|career-best|career best)\b", text):
@@ -518,9 +544,22 @@ def _fallback_intent(question, understood=None):
     ):
         return "player_profile"
 
-    # A simple "Who is [name]?" question is a profile request.
     if re.match(r"^\s*who\s+is\s+.+", text):
         return "player_profile"
+
+    if not re.search(
+        r"\b(rank|ranking|rating|ranked|database|"
+        r"player count|list players|top players|career-best)\b",
+        text,
+    ) and re.search(
+        r"\b(how can|how do|how should|how to|tips|beginner|"
+        r"footwork|training|practice|technique|improve my|"
+        r"improve your|tennis rules|tennis strategy|"
+        r"tennis tactics|workout|warm.?up|serve technique|"
+        r"backhand|forehand|volley|fitness|match preparation)\b",
+        text,
+    ):
+        return "general_tennis"
 
     return "unknown"
 
@@ -542,6 +581,7 @@ Allowed intents:
 - player_profile
 - player_count
 - list_players
+- general_tennis
 - unknown
 
 Rules:
@@ -562,10 +602,18 @@ Rules:
   player_count.
 - List players without asking for a ranking:
   list_players.
+- General tennis advice, beginner guidance, footwork, training,
+  technique, tennis rules, strategy, fitness, or practice questions
+  that do not require specific database records:
+  general_tennis.
 - Match statistics such as aces, double faults, winners,
   unforced errors, serve percentage, break points, match scores,
   or shot statistics:
   unknown.
+- Questions about a specific player's database profile or rankings
+  must use the appropriate structured-data intent, not general_tennis.
+- Use unknown for questions unrelated to tennis or unsupported
+  database information.
 
 Sources: ATP, WTA, ITF, UTR.
 Ranking types: singles, doubles.
@@ -595,7 +643,7 @@ USER QUESTION:
 {question}
 """.strip()
 
-    response = ask_ollama(prompt)
+    response = ask_ollama(prompt, json_mode=True)
     data = _extract_json_object(response)
 
     intent = data.get("intent")
@@ -640,7 +688,6 @@ USER QUESTION:
     except (TypeError, ValueError):
         limit = None
 
-    # Recover common fields if the model failed to extract them.
     question_lower = question.lower()
 
     if not source:
@@ -667,7 +714,6 @@ USER QUESTION:
         if limit_match:
             limit = int(limit_match.group(1))
 
-    # Use deterministic routing when the model returns unknown.
     if intent == "unknown":
         intent = _fallback_intent(
             question,
@@ -677,8 +723,6 @@ USER QUESTION:
             },
         )
 
-    # Keep explicit organisation/date-filtered ranking requests
-    # on the filtered-ranking path.
     if (
         intent == "latest_rankings"
         and re.search(r"\b(atp|wta|itf|utr)\b", question_lower)
@@ -868,8 +912,6 @@ def answer_ranking_change(
     end_date=None,
     requested_metric="ranking",
 ):
-    """Compare the earliest and latest available values in a period."""
-
     rows = get_filtered_player_rankings(
         player["player_id"],
         source=source,
@@ -948,8 +990,6 @@ def answer_average_ranking(
     start_date=None,
     end_date=None,
 ):
-    """Calculate the average ranking in an explicitly requested period."""
-
     name = player["full_name"]
 
     if not start_date or not end_date:
@@ -1005,8 +1045,6 @@ def answer_period_comparison(
     end_date=None,
     requested_metric="ranking",
 ):
-    """Compare available values from the start and end periods."""
-
     if not start_date or not end_date:
         return answer_ranking_change(
             player,
@@ -1324,8 +1362,30 @@ def answer_structured_question(question):
 
     question_lower = question.lower()
 
-    # If the question explicitly says "on <date>",
-    # use an exact date range when the router found the date.
+    if intent == "general_tennis":
+        try:
+            answer = answer_general_tennis_question(question)
+            return {
+                "status": "answered",
+                "answer": answer,
+            }
+        except requests.RequestException:
+            return {
+                "status": "error",
+                "answer": (
+                    "I'm unable to generate a tennis answer right now. "
+                    "Please try again shortly."
+                ),
+            }
+        except RuntimeError:
+            return {
+                "status": "error",
+                "answer": (
+                    "The tennis assistant is temporarily unavailable. "
+                    "Please try again later."
+                ),
+            }
+
     if (
         start_date
         and not end_date
@@ -1404,7 +1464,6 @@ def answer_structured_question(question):
             ),
         }
 
-    # Deterministic fallback if routing still could not identify intent.
     if intent == "unknown":
         intent = _fallback_intent(
             question,
@@ -1414,12 +1473,33 @@ def answer_structured_question(question):
             },
         )
 
-    # Recover a player name when the model omitted it.
+    if intent == "general_tennis":
+        try:
+            answer = answer_general_tennis_question(question)
+            return {
+                "status": "answered",
+                "answer": answer,
+            }
+        except requests.RequestException:
+            return {
+                "status": "error",
+                "answer": (
+                    "I'm unable to generate a tennis answer right now. "
+                    "Please try again shortly."
+                ),
+            }
+        except RuntimeError:
+            return {
+                "status": "error",
+                "answer": (
+                    "The tennis assistant is temporarily unavailable. "
+                    "Please try again later."
+                ),
+            }
+
     if not player_name:
         player_name = _extract_player_name(question)
 
-    # Handle questions such as:
-    # "Who was ranked number 1 in ATP singles on 2 March 2026?"
     ranked_number_question = (
         (
             "who was ranked" in question_lower
