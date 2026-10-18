@@ -29,7 +29,7 @@ def ask_ollama(prompt):
     Send a prompt to the hosted Ollama API.
     Requires OLLAMA_API_KEY in the server environment.
     """
-    api_key = os.environ.get("72372d79c90449368209a42d4deab954.rmG_zQLQcDNfZ3wG3XO750X9")
+    api_key = os.environ.get("OLLAMA_API_KEY")
 
     if not api_key:
         raise RuntimeError(
