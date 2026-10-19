@@ -32,16 +32,27 @@ export function MediaCard({ item }) {
             />
           </div>
         ) : (
-          <div className="absolute inset-0 overflow-hidden bg-te-surface-container-low">
-            <img
-              src="/images/tennis-placeholder.jpg"
-              alt="Tennis Explore media placeholder"
-              loading="lazy"
-              className="w-full h-full object-cover object-center"
-            />
+          <div className="absolute inset-0 flex items-center justify-center bg-te-surface-container-low">
+            <div className={cn('rounded-2xl p-6', tc.bg, tc.text)}>
+              <Icon
+                name={
+                  item.type === 'video'
+                    ? 'videocam'
+                    : item.type === 'image'
+                      ? 'image'
+                      : item.type === 'pdf'
+                        ? 'picture_as_pdf'
+                        : 'description'
+                }
+                className="text-6xl"
+              />
+            </div>
           </div>
         )}
-      </div>
+          </div>
+        
+        
+      
 
       {/* File information */}
       <div className="p-5">

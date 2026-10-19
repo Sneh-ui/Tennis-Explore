@@ -1,7 +1,7 @@
 
 import api from '@/lib/axios'
 
-const MEDIA_BASE = import.meta.env.VITE_MEDIA_API_URL || 'http://127.0.0.1:8001'
+const MEDIA_BASE = import.meta.env.VITE_MEDIA_API_URL || import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
 
 // Retrieve media files from AWS S3
 export async function getMediaFiles({
