@@ -1,4 +1,10 @@
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load backend/.env so OLLAMA_* can be overridden per environment
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
 # =========================================================
@@ -138,5 +144,7 @@ EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 RERANKER_MODEL_NAME = "BAAI/bge-reranker-base"
 
-OLLAMA_MODEL_NAME = "mistral"
-OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_MODEL_NAME = os.getenv("OLLAMA_MODEL", os.getenv("OLLAMA_MODEL_NAME", "mistral"))
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
+OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY")  # optional — required only for https://ollama.com/api/chat
+OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "180"))

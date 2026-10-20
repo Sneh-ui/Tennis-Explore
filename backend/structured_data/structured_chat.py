@@ -1,7 +1,8 @@
 import os
 import json
 import re
-import requests
+
+from backend.shared.ollama_client import call_ollama
 
 from backend.structured_data.queries import (
     search_players,
@@ -17,8 +18,10 @@ from backend.structured_data.queries import (
     get_players,
 )
 
-OLLAMA_URL = "https://ollama.com/api/chat"
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:31b")
+OLLAMA_URL = os.getenv("OLLAMA_URL", "https://ollama.com/api/chat")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", os.getenv("OLLAMA_MODEL_NAME", "gemma4:31b"))
+# Kept for backwards-compat / env inspection; actual calls go via shared helper
+OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "120"))
 
 SUPPORTED_INTENTS = {
     "latest_rankings",
@@ -35,46 +38,15 @@ SUPPORTED_INTENTS = {
 
 
 def ask_ollama(prompt, json_mode=True):
-    api_key = os.environ.get("OLLAMA_API_KEY")
-
-    if not api_key:
-        raise RuntimeError(
-            "OLLAMA_API_KEY is missing from the server environment."
-        )
-
-    payload = {
-        "model": OLLAMA_MODEL,
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-        "stream": False,
-    }
-
-    if json_mode:
-        payload["format"] = "json"
-
-    response = requests.post(
-        OLLAMA_URL,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        json=payload,
-        timeout=120,
+    """Delegates to shared helper — keeps one place for cloud/local logic."""
+    return call_ollama(
+        prompt,
+        url=OLLAMA_URL,
+        model=OLLAMA_MODEL,
+        timeout=OLLAMA_TIMEOUT,
+        json_mode=json_mode,
+        temperature=0.0,
     )
-
-    response.raise_for_status()
-
-    result = response.json()
-    answer = result.get("message", {}).get("content", "").strip()
-
-    if not answer:
-        raise RuntimeError("Ollama returned an empty response.")
-
-    return answer
 
 
 def answer_general_tennis_question(question):

@@ -11,15 +11,26 @@ from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer, CrossEncoder
 
 BASE = Path(__file__).resolve().parent.parent
+BACKEND_DIR = BASE.parent
+PROJECT_ROOT = BACKEND_DIR.parent
+# Ensure both documents_v2 and project root are on sys.path for shared imports
 sys.path.insert(0, str(BASE))
-load_dotenv(BASE.parent / ".env")
+sys.path.insert(0, str(PROJECT_ROOT))
+load_dotenv(BACKEND_DIR / ".env")
 
 from config import (
     EMBEDDING_MODEL_NAME,
     RERANKER_MODEL_NAME,
     OLLAMA_MODEL_NAME,
     OLLAMA_URL,
+    OLLAMA_TIMEOUT,
 )
+
+# Use common helper for local/cloud Ollama
+try:
+    from backend.shared.ollama_client import call_ollama
+except ImportError:  # fallback when run as standalone script
+    from shared.ollama_client import call_ollama  # type: ignore
 
 def load_retrieval():
     path = BASE / "06_retrieval" / "production_supabase_rerank.py"
@@ -248,19 +259,14 @@ RULES:
 ANSWER:
 """.strip()
 
-    response = requests.post(
-        OLLAMA_URL,
-        json={
-            "model": OLLAMA_MODEL_NAME,
-            "prompt": prompt,
-            "stream": False,
-            "options": {"temperature": 0.0},
-        },
-        timeout=180,
+    return call_ollama(
+        prompt,
+        url=OLLAMA_URL,
+        model=OLLAMA_MODEL_NAME,
+        timeout=OLLAMA_TIMEOUT,
+        json_mode=False,
+        temperature=0.0,
     )
-
-    response.raise_for_status()
-    return response.json().get("response", "").strip()
 
 
 def show_sources(evidence):
