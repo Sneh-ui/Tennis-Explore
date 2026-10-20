@@ -6,7 +6,6 @@ import { Icon } from '@/components/shared/icon'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { DEMO_ACCOUNT } from '@/context/auth-context'
 import { useAuth } from '@/hooks/use-auth'
 import { hasPendingQuery } from '@/lib/pending-query'
 import { loginSchema } from '@/lib/validations'
@@ -57,15 +56,6 @@ export default function LoginPage() {
 
   if (user) {
     return <Navigate to="/ai-chatbot" replace />
-  }
-
-  const fillDemoCredentials = () => {
-    formik.setValues({ email: DEMO_ACCOUNT.email, password: DEMO_ACCOUNT.password })
-    setServerError('')
-  }
-  const fillCoachCredentials = () => {
-    formik.setValues({ email: 'coach@tennisexplore.au', password: 'coach123' })
-    setServerError('')
   }
 
   return (
@@ -175,26 +165,6 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-
-          <div className="mt-6 rounded-xl border border-dashed border-te-outline bg-white/[0.02] p-4 space-y-3">
-            <p className="text-label-md uppercase tracking-wider text-muted-foreground font-sans" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>Demo Access</p>
-            <div className="flex items-center justify-between">
-              <p className="text-body-md text-muted-foreground font-sans" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                {DEMO_ACCOUNT.email} / {DEMO_ACCOUNT.password} <span className="text-xs uppercase tracking-wider ml-1">admin</span>
-              </p>
-              <Button type="button" variant="link" size="sm" className="h-auto p-0 font-sans" onClick={fillDemoCredentials}>
-                Fill admin
-              </Button>
-            </div>
-            <div className="flex items-center justify-between">
-              <p className="text-body-md text-muted-foreground font-sans" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                coach@tennisexplore.au / coach123 <span className="text-xs uppercase tracking-wider ml-1">coach</span>
-              </p>
-              <Button type="button" variant="link" size="sm" className="h-auto p-0 font-sans" onClick={fillCoachCredentials}>
-                Fill coach
-              </Button>
-            </div>
-          </div>
 
           {/* Signup disabled for now — login-only feature
           <p className="mt-6 text-center text-body-md text-muted-foreground">

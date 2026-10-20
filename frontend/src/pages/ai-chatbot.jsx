@@ -12,7 +12,7 @@ import {
   getChatHistory,
 } from '@/lib/api'
 
-import { INITIAL_MESSAGES, CHAT_SUGGESTIONS } from '@/data/constants'
+import { CHAT_SUGGESTIONS } from '@/data/constants'
 import { consumePendingQuery } from '@/lib/pending-query'
 
 import { useAuthStore } from '@/store/auth-store'
@@ -156,7 +156,7 @@ function SuggestionsPanel() {
 export default function AIChatbotPage() {
   const location = useLocation()
   const accessToken = useAuthStore((state) => state.accessToken)
-  const [messages, setMessages] = useState(INITIAL_MESSAGES)
+  const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [showHistory, setShowHistory] = useState(false)
   const [chatHistory, setChatHistory] = useState([])
@@ -247,7 +247,7 @@ setMessages((prev) => [
     }
   }
 
-  return (
+return (
     <div className="flex h-[calc(100vh-4rem)] overflow-hidden -m-6">
       {/* Chat Container */}
       <div className="flex-1 flex flex-col relative bg-card">
@@ -260,7 +260,7 @@ setMessages((prev) => [
             <div>
               <h2 className="text-title-lg text-foreground">AI Assistant</h2>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <span className="w-2 h-2 bg-primary rounded-full animate-pulse" /> Online &amp; Ready
+                <span className="w-2 h-2 bg-primary rounded-full animate-pulse" /> Online & Ready
               </p>
             </div>
           </div>
@@ -325,10 +325,24 @@ setMessages((prev) => [
             </div>
           ) : (
             <>
-              {messages.map((msg, i) => (
-                <ChatMessage key={i} msg={msg} />
-              ))}
-              <div ref={messagesEndRef} />
+              {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground px-8">
+                  <div className="w-20 h-20 rounded-full bg-te-surface-container-highest flex items-center justify-center mb-6">
+                    <Icon name="psychology" className="text-3xl text-primary" />
+                  </div>
+                  <h3 className="text-title-lg text-foreground mb-2">Start a conversation</h3>
+                  <p className="text-body-md max-w-md leading-relaxed">
+                    Ask about player performance, match statistics, or tennis insights.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {messages.map((msg, i) => (
+                    <ChatMessage key={i} msg={msg} />
+                  ))}
+                  <div ref={messagesEndRef} />
+                </>
+              )}
             </>
           )}
         </div>
@@ -336,7 +350,6 @@ setMessages((prev) => [
         {/* Input */}
         {!showHistory && (
         <div className="p-6 border-t border-te-outline-variant bg-card shrink-0">
-
 
 
           <div className="max-w-4xl mx-auto relative">

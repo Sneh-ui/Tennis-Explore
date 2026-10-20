@@ -8,13 +8,6 @@ import { EXTERNAL_APPS } from "@/data/constants";
 /* ─────────────────────────── DATA ─────────────────────────── */
 const APPS = EXTERNAL_APPS;
 
-const HINTS = [
-  "Match Prediction AI",
-  "Biomechanics Analysis",
-  "Sponsorship ROI",
-  "ATP Live Rankings",
-];
-
 // Free Pexels tennis video (no auth needed for direct mp4)
 const BG_VIDEO_URL =
   "/videos/herobg.mp4";
@@ -123,30 +116,7 @@ function AppCard({ icon, label, filled, bold, index, url }) {
   );
 }
 
-/* ─────────────────────────── HINT PILL ────────────────────── */
-function HintPill({ label, index }) {
-  return (
-    <motion.span
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1.6 + index * 0.1, duration: 0.5 }}
-      whileHover={{ borderColor: "rgba(176, 248, 32, 0.3)", scale: 1.04 }}
-      className="px-4 py-2 rounded-full whitespace-nowrap cursor-pointer text-[#c2caae]"
-      style={{
-        background: "rgba(18, 20, 28, 0.6)",
-        backdropFilter: "blur(20px)",
-        border: "1px solid rgba(255, 255, 255, 0.05)",
-        fontFamily: "Inter",
-        fontSize: 12,
-        fontWeight: 600,
-        letterSpacing: "0.05em",
-        textTransform: "uppercase",
-      }}
-    >
-      {label}
-    </motion.span>
-  );
-}
+
 
 /* ─────────────────────────── SEARCH BAR ───────────────────── */
 function SearchBar() {
@@ -216,12 +186,6 @@ function SearchBar() {
 
         <div className="flex items-center gap-1 pr-1">
           <motion.button
-            whileHover={{ color: "#ffffff" }}
-            className="p-3 text-[#c2caae] transition-colors"
-          >
-            <Icon name="mic" />
-          </motion.button>
-          <motion.button
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.92 }}
             onClick={handleSend}
@@ -257,26 +221,6 @@ function Header() {
         borderColor: "rgba(255,255,255,0.05)",
       }}
     >
-      {/* Menu button */}
-      <div className="flex items-center gap-4">
-        <motion.button
-          whileHover={{ borderColor: "rgba(176,248,32,0.3)" }}
-          className="flex items-center gap-2 px-4 py-2 rounded-full uppercase tracking-[0.15em] text-[#e1e1f0] hover:text-[#b0f820] transition-colors"
-          style={{
-            background: "rgba(18, 20, 28, 0.6)",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.05)",
-            fontFamily: "Inter",
-            fontSize: 12,
-            fontWeight: 600,
-            letterSpacing: "0.05em",
-          }}
-        >
-          <Icon name="menu" className="text-[18px]" />
-          Menu
-        </motion.button>
-      </div>
-
       {/* Logo */}
       <div className="absolute left-1/2 -translate-x-1/2">
         <motion.h1
@@ -293,43 +237,19 @@ function Header() {
 
       {/* Right nav */}
       <div className="flex items-center gap-6">
-        <nav
-          className="hidden md:flex items-center gap-8 uppercase tracking-[0.15em] text-[#c2caae]"
-          style={{ fontFamily: "Inter", fontSize: 12, fontWeight: 600, letterSpacing: "0.05em" }}
-        >
+        <nav className="hidden md:flex items-center gap-8 uppercase tracking-[0.15em] text-[#c2caae]" style={{ fontFamily: "Inter", fontSize: 12, fontWeight: 600, letterSpacing: "0.05em" }}>
           {user ? (
             <motion.div whileHover={{ color: "#b0f820" }}>
-              <Link
-                to="/ai-chatbot"
-                // to="/dashboard" 
-                className="cursor-pointer transition-colors"
-              >
-                Ai Chat Bot
-              </Link>
+              <Link to="/ai-chatbot" className="cursor-pointer transition-colors">Ai Chat Bot</Link>
             </motion.div>
           ) : (
             <motion.div whileHover={{ color: "#b0f820" }}>
-              <Link
-                to="/login"
-                className="cursor-pointer transition-colors"
-              >
-                Login
-              </Link>
+              <Link to="/login" className="cursor-pointer transition-colors">Login</Link>
             </motion.div>
           )}
         </nav>
-        <motion.div
-          whileHover={{ scale: 1.1 }}
-          className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer"
-          style={{
-            background: "rgba(18, 20, 28, 0.6)",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
-          <span className="text-sm font-bold text-white" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-            {user ? getInitials(user.name) : "TE"}
-          </span>
+        <motion.div whileHover={{ scale: 1.1 }} className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer" style={{ background: "rgba(18, 20, 28, 0.6)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.1)" }}>
+          <span className="text-sm font-bold text-white" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>{user ? getInitials(user.name) : "TE"}</span>
         </motion.div>
       </div>
     </motion.header>
@@ -442,7 +362,7 @@ const TennisExploreHero = ()=> {
         style={{ paddingLeft: 64, paddingRight: 64 }}
       >
         {/* Left: App list */}
-        <div className="col-span-3 flex flex-col justify-center gap-8">
+        <div className="col-span-2 flex flex-col justify-center gap-8">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -485,7 +405,7 @@ const TennisExploreHero = ()=> {
         </div>
 
         {/* Right: Hero content */}
-        <div className="col-span-9 flex flex-col justify-center pl-12 relative">
+        <div className="col-span-10 flex flex-col justify-center pl-12 relative">
           {/* Headline + description row */}
           <div className="flex items-start justify-between mb-8">
             <div className="max-w-2xl">
@@ -533,18 +453,6 @@ const TennisExploreHero = ()=> {
 
           {/* Search bar */}
           <SearchBar />
-
-          {/* Hint pills */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5, duration: 0.5 }}
-            className="mt-10 flex gap-4 overflow-x-auto"
-          >
-            {HINTS.map((h, i) => (
-              <HintPill key={h} label={h} index={i} />
-            ))}
-          </motion.div>
         </div>
       </main>
     </div>

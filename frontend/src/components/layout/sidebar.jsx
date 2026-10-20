@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Icon } from '@/components/shared/icon'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -34,7 +35,9 @@ export function Sidebar({ mobileOpen, onCloseMobile }) {
       >
         {/* Brand */}
         <div className="flex justify-center items-center mb-3">
-          <img src="/images/tennis-australia-logo.svg" />
+          <Link to="/" className="cursor-pointer hover:opacity-80 transition-opacity">
+            <img src="/images/tennis-australia-logo.svg" alt="Tennis Explore" className="h-16 w-auto" />
+          </Link>
         </div>
 
         {/* Navigation */}

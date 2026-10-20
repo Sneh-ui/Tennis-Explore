@@ -13,7 +13,7 @@ export const EXTERNAL_APPS = [
   { id: 'teambuildr', icon: 'fitness_center', label: 'Teambuildr', url: 'https://app-v3.teambuildr.com/login' },
   { id: 'bounce', icon: 'sports_tennis', label: 'Bounce', url: 'https://bounce.tennis.com.au/login/', filled: true, bold: true },
   { id: 'coaches-box', icon: 'strategy', label: 'Coaches Box', url: 'https://players.ausopen.com' },
-  { id: 'tennismove', icon: 'directions_run', label: 'TennisMove', url: null },
+  { id: 'tennismove', icon: 'directions_run', label: 'TennisMove', url: 'https://www.tennismove.com.au/' },
   { id: 'ace', icon: 'workspace_premium', label: 'ACE', url: 'http://www.acetennisaustralia.com/' },
 ]
 
