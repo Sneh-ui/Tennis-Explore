@@ -262,6 +262,117 @@ def get_best_player_ranking(player_id, source=None, ranking_type=None):
         conn.close()
 
 
+
+def get_ranking_date_range(source, ranking_type="singles"):
+    """Return the first and last available ranking dates."""
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    MIN(snapshot_date) AS min_date,
+                    MAX(snapshot_date) AS max_date
+                FROM core.ranking_snapshots
+                WHERE UPPER(source) = UPPER(%s)
+                  AND LOWER(ranking_type) = LOWER(%s)
+                  AND rank IS NOT NULL;
+                """,
+                (source, ranking_type),
+            )
+
+            row = cur.fetchone()
+
+            if not row or row["min_date"] is None:
+                return None
+
+            return {
+                "min_date": row["min_date"],
+                "max_date": row["max_date"],
+            }
+    finally:
+        conn.close()
+
+
+def get_top_ranked_players_in_period(
+    source,
+    ranking_type="singles",
+    start_date=None,
+    end_date=None,
+    limit=5,
+):
+    """
+    Return top-ranked players from the latest available snapshot
+    inside the requested date period.
+    """
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor() as cur:
+            conditions = [
+                "UPPER(source) = UPPER(%s)",
+                "LOWER(ranking_type) = LOWER(%s)",
+                "rank IS NOT NULL",
+            ]
+            params = [source, ranking_type]
+
+            if start_date:
+                conditions.append("snapshot_date >= %s")
+                params.append(start_date)
+
+            if end_date:
+                conditions.append("snapshot_date <= %s")
+                params.append(end_date)
+
+            where_clause = " AND ".join(conditions)
+
+            cur.execute(
+                f"""
+                SELECT MAX(snapshot_date) AS snapshot_date
+                FROM core.ranking_snapshots
+                WHERE {where_clause};
+                """,
+                tuple(params),
+            )
+
+            date_row = cur.fetchone()
+
+            if not date_row or date_row["snapshot_date"] is None:
+                return []
+
+            selected_date = date_row["snapshot_date"]
+
+            cur.execute(
+                """
+                SELECT
+                    p.player_id,
+                    p.full_name,
+                    p.country,
+                    r.source,
+                    r.ranking_type,
+                    r.rank,
+                    r.points,
+                    r.rating,
+                    r.snapshot_date
+                FROM core.ranking_snapshots r
+                JOIN core.players p
+                    ON p.player_id = r.player_id
+                WHERE UPPER(r.source) = UPPER(%s)
+                  AND LOWER(r.ranking_type) = LOWER(%s)
+                  AND r.snapshot_date = %s
+                  AND r.rank IS NOT NULL
+                ORDER BY r.rank ASC
+                LIMIT %s;
+                """,
+                (source, ranking_type, selected_date, limit),
+            )
+
+            return [dict(row) for row in cur.fetchall()]
+    finally:
+        conn.close()
+
+
 def get_top_ranked_players(
     source,
     ranking_type="singles",

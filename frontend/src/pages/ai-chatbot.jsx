@@ -157,6 +157,7 @@ export default function AIChatbotPage() {
   const location = useLocation()
   const accessToken = useAuthStore((state) => state.accessToken)
   const [messages, setMessages] = useState(INITIAL_MESSAGES)
+  const [structuredContext, setStructuredContext] = useState(null)
   const [input, setInput] = useState('')
   const [showHistory, setShowHistory] = useState(false)
   const [chatHistory, setChatHistory] = useState([])
@@ -193,12 +194,22 @@ const handleSend = async () => {
 
   try {
     
-    const data = await automaticChatRequest(question, accessToken)
+    const data = await automaticChatRequest(
+      question,
+      accessToken,
+      structuredContext
+    )
 
 
     
 const answer = data.answer || 'No answer was returned.'
 const sources = Array.isArray(data.sources) ? data.sources : []
+
+// Keep structured context only when the automatic router
+// returns structured conversational state.
+if (data.context) {
+  setStructuredContext(data.context)
+}
 
 setMessages((prev) => [
   ...prev,

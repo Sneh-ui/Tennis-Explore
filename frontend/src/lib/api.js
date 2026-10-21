@@ -81,8 +81,12 @@ export async function updateOwnPassword(token, payload) {
   return data;
 }
 
-export async function structuredChatRequest(question) {
+export async function structuredChatRequest(question, context = null) {
   const params = new URLSearchParams({ question });
+
+  if (context) {
+    params.set("context", JSON.stringify(context));
+  }
 
   const res = await fetch(`${API_BASE}/structured/chat?${params.toString()}`, {
     method: "POST",
@@ -136,7 +140,10 @@ export async function unstructuredChatRequest(question, token) {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({
+      question,
+      ...(context ? { context } : {}),
+    }),
   })
 
   const data = await res.json().catch(() => ({}))
@@ -153,14 +160,17 @@ export async function unstructuredChatRequest(question, token) {
 }
 
 
-export async function automaticChatRequest(question, token) {
+export async function automaticChatRequest(question, token, context = null) {
   const res = await fetch(`${API_BASE}/chat/auto`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({
+      question,
+      ...(context ? { context } : {}),
+    }),
   })
 
   const data = await res.json().catch(() => ({}))

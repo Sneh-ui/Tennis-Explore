@@ -11,6 +11,8 @@ from backend.structured_data.queries import (
     get_filtered_player_rankings,
     get_best_player_ranking,
     get_top_ranked_players,
+    get_top_ranked_players_in_period,
+    get_ranking_date_range,
     get_player_profile,
     get_latest_filtered_player_rankings,
     get_player_count,
@@ -613,7 +615,66 @@ For all other questions, use null for limit unless a number is requested.
 Dates must be YYYY-MM-DD when an exact date is explicitly stated.
 Do not guess dates.
 
-Return ONLY a JSON object with these keys:
+Use "filtered_rankings" when the user asks for ranking or
+rating information for a particular source, ranking type,
+date, month, year, or date range.
+
+Use "best_ranking" when the user asks for the player's best,
+highest, peak, or career-best numerical ranking.
+
+Use "top_rankings" when the user asks who the top-ranked
+players are, for example top 5 ATP singles players.
+
+Use "player_profile" for basic player information such as
+country, gender, birth year, or when the user asks to find,
+show, or identify one specific player.
+
+Use "player_count" when the user asks how many players are
+in the database or asks for the total number of players.
+
+Use "list_players" when the user asks to show, list, or display
+a number of players from the database without requesting a
+ranking organisation. Put the requested number in "limit".
+If no number is given for a general player list, use 10.
+
+The structured database does NOT contain match statistics such as
+aces, double faults, winners, unforced errors, serve percentage,
+break points, match scores, or shot statistics.
+
+Questions asking for those values MUST use "unknown", even when
+a player name is present.
+
+A question about a specific organisation such as ATP, WTA, ITF or UTR
+is still a supported structured-data question even if that player may
+not have data from that organisation. Do NOT use "unknown" simply
+because the requested organisation may be unavailable.
+
+For example:
+"What is Cruz Hewitt's WTA singles ranking?"
+must be classified as "filtered_rankings" with source "WTA" and
+ranking_type "singles". The database will determine whether data exists.
+
+Use "unknown" if the question cannot be answered using
+player identity/profile or ranking/rating data.
+
+Dates:
+- Return dates as YYYY-MM-DD when an exact date is clearly stated.
+- If a whole month is requested, return the first day as
+  start_date and the last day as end_date.
+- If a whole year is requested, return January 1 of that year as
+  start_date and December 31 of that year as end_date.
+- If no date is requested, use null.
+- Do not guess an unspecified date.
+
+For top-N questions:
+- Return the requested number as "limit".
+- If the user says "top players" without a number, use 5.
+- For top-ranking questions, return the requested number as "limit".
+- For general player-list questions, also return the requested number as "limit".
+- If the user asks to list/show players without a number, use 10.
+- Otherwise use null.
+
+Return ONLY valid JSON with exactly these keys:
 {{
   "intent": "unknown",
   "player_name": null,
@@ -726,6 +787,30 @@ USER QUESTION:
         "end_date": end_date,
         "limit": limit,
     }
+
+
+def merge_followup_context(current, previous=None):
+    """Merge a short follow-up with the previous resolved structured state."""
+    if not previous:
+        return current
+
+    merged = dict(previous)
+
+    # The current turn overrides only fields it explicitly resolved.
+    for key in (
+        "intent",
+        "player_name",
+        "source",
+        "ranking_type",
+        "start_date",
+        "end_date",
+        "limit",
+    ):
+        value = current.get(key)
+        if value is not None and value != "unknown":
+            merged[key] = value
+
+    return merged
 
 
 def format_date(value):
@@ -1180,27 +1265,110 @@ def answer_top_rankings(
     ranking_type="singles",
     limit=5,
     snapshot_date=None,
+    start_date=None,
+    end_date=None,
 ):
     if not source:
-        return "Please specify a ranking organisation such as ATP, WTA or ITF."
+        return "Please specify a ranking organisation such as ATP, WTA, ITF or UTR."
 
-    rows = get_top_ranked_players(
-        source,
-        ranking_type=ranking_type or "singles",
-        snapshot_date=snapshot_date,
-        limit=limit or 5,
-    )
+    ranking_type = ranking_type or "singles"
+
+    availability = get_ranking_date_range(source, ranking_type)
+
+    if not availability:
+        return (
+            f"{source.upper()} {ranking_type.lower()} "
+            f"ranking data is not available in the database."
+        )
+
+    min_date = availability["min_date"]
+    max_date = availability["max_date"]
+
+    requested_start = start_date or snapshot_date
+    requested_end = end_date or snapshot_date
+
+    # Reject requests completely outside the available DB period.
+    if requested_start and requested_end:
+        from datetime import date
+
+        if isinstance(requested_start, str):
+            requested_start_value = date.fromisoformat(requested_start)
+        else:
+            requested_start_value = requested_start
+
+        if isinstance(requested_end, str):
+            requested_end_value = date.fromisoformat(requested_end)
+        else:
+            requested_end_value = requested_end
+
+        if requested_end_value < min_date or requested_start_value > max_date:
+            if (
+                requested_start_value.month == 1
+                and requested_start_value.day == 1
+                and requested_end_value.month == 12
+                and requested_end_value.day == 31
+                and requested_start_value.year == requested_end_value.year
+            ):
+                requested_period = str(requested_start_value.year)
+            elif (
+                requested_start_value.year == requested_end_value.year
+                and requested_start_value.month == requested_end_value.month
+                and requested_start_value.day == 1
+            ):
+                requested_period = requested_start_value.strftime("%B %Y")
+            elif requested_start_value == requested_end_value:
+                requested_period = format_date(requested_start_value)
+            else:
+                requested_period = (
+                    f"{format_date(requested_start_value)} to "
+                    f"{format_date(requested_end_value)}"
+                )
+
+            return (
+                f"{source.upper()} {ranking_type.lower()} ranking data for "
+                f"{requested_period} is not available in the database. "
+                f"Available {source.upper()} {ranking_type.lower()} data covers "
+                f"{format_date(min_date)} to {format_date(max_date)}."
+            )
+
+    # Period request: choose the latest real snapshot inside that period.
+    if start_date or end_date:
+        rows = get_top_ranked_players_in_period(
+            source,
+            ranking_type=ranking_type,
+            start_date=start_date,
+            end_date=end_date,
+            limit=limit or 5,
+        )
+    else:
+        rows = get_top_ranked_players(
+            source,
+            ranking_type=ranking_type,
+            snapshot_date=snapshot_date,
+            limit=limit or 5,
+        )
 
     if not rows:
-        if snapshot_date:
+        if requested_start or requested_end:
+            period_parts = []
+
+            if requested_start:
+                period_parts.append(format_date(requested_start))
+
+            if requested_end and requested_end != requested_start:
+                period_parts.append(format_date(requested_end))
+
+            requested_period = " to ".join(period_parts)
+
             return (
-                f"{source.upper()} {(ranking_type or 'singles').lower()} "
-                f"ranking data is not available on "
-                f"{format_date(snapshot_date)}."
+                f"{source.upper()} {ranking_type.lower()} ranking data is not "
+                f"available for {requested_period}. "
+                f"Available {source.upper()} {ranking_type.lower()} data covers "
+                f"{format_date(min_date)} to {format_date(max_date)}."
             )
 
         return (
-            f"{source.upper()} {(ranking_type or 'singles').lower()} "
+            f"{source.upper()} {ranking_type.lower()} "
             f"ranking data is not available."
         )
 
@@ -1215,32 +1383,29 @@ def answer_top_rankings(
             else ""
         )
 
-        if snapshot_date:
+        if snapshot_date or start_date or end_date:
             return (
                 f"{row['full_name']}{country} was ranked number "
                 f"{row['rank']} in {source.upper()} "
-                f"{(ranking_type or 'singles').lower()} on "
-                f"{actual_date}."
+                f"{ranking_type.lower()} on {actual_date}."
             )
 
         return (
             f"{row['full_name']}{country} is ranked number "
             f"{row['rank']} in the latest {source.upper()} "
-            f"{(ranking_type or 'singles').lower()} ranking "
-            f"available in the database ({actual_date})."
+            f"{ranking_type.lower()} ranking available in the database "
+            f"({actual_date})."
         )
 
-    if snapshot_date:
+    if snapshot_date or start_date or end_date:
         intro = (
-            f"In the {source.upper()} "
-            f"{(ranking_type or 'singles').lower()} ranking "
-            f"on {actual_date}, the top {len(rows)} players are:"
+            f"In the {source.upper()} {ranking_type.lower()} ranking "
+            f"available on {actual_date}, the top {len(rows)} players are:"
         )
     else:
         intro = (
-            f"In the latest {source.upper()} "
-            f"{(ranking_type or 'singles').lower()} ranking available "
-            f"in the database ({actual_date}), "
+            f"In the latest {source.upper()} {ranking_type.lower()} ranking "
+            f"available in the database ({actual_date}), "
             f"the top {len(rows)} players are:"
         )
 
@@ -1252,7 +1417,6 @@ def answer_top_rankings(
             if row.get("country")
             else ""
         )
-
         lines.append(f"{row['rank']}. {row['full_name']}{country}")
 
     return "\n".join(lines)
@@ -1334,10 +1498,59 @@ def format_country(country):
     }
 
     return country_names.get(country.upper(), country)
+def answer_structured_question(question, understood=None):
+    # Parse normally for standalone questions. For conversational
+    # follow-ups, the API can provide an already-resolved context.
+    if understood is None:
+        understood = understand_question(question)
 
+    # The ranking dataset used by Tennis EXPLORE covers 2026.
+    # If the user names a month without an explicit year, the language
+    # router can invent a year (for example 2000 or 2022). Normalise
+    # month-only ranking questions deterministically to 2026.
+    question_lower = question.lower()
 
-def answer_structured_question(question):
-    understood = understand_question(question)
+    month_numbers = {
+        "january": 1,
+        "february": 2,
+        "march": 3,
+        "april": 4,
+        "may": 5,
+        "june": 6,
+        "july": 7,
+        "august": 8,
+        "september": 9,
+        "october": 10,
+        "november": 11,
+        "december": 12,
+    }
+
+    has_explicit_year = any(
+        str(year) in question_lower
+        for year in range(1900, 2101)
+    )
+
+    if not has_explicit_year:
+        from datetime import date, timedelta
+
+        for month_name, month_number in month_numbers.items():
+            if month_name in question_lower:
+                year = 2026
+
+                if month_number == 12:
+                    next_year, next_month = 2027, 1
+                else:
+                    next_year, next_month = year, month_number + 1
+
+                understood["start_date"] = date(
+                    year, month_number, 1
+                ).isoformat()
+
+                understood["end_date"] = (
+                    date(next_year, next_month, 1)
+                    - timedelta(days=1)
+                ).isoformat()
+                break
 
     intent = understood.get("intent", "unknown")
     player_name = understood.get("player_name")
@@ -1379,6 +1592,31 @@ def answer_structured_question(question):
         and re.search(r"\bon\b", question_lower)
     ):
         end_date = start_date
+    question_lower = question.lower()
+
+    # Explicit ranking requests such as "Show me the top 10 WTA players"
+    # must use ranking data rather than the generic alphabetical player list.
+    import re
+
+    explicit_top_ranking = re.search(
+        r"\btop\s+(\d+)\s+(atp|wta|itf|utr)\b",
+        question_lower,
+        re.IGNORECASE,
+    )
+
+    if explicit_top_ranking:
+        intent = "top_rankings"
+        source = explicit_top_ranking.group(2).upper()
+        limit = int(explicit_top_ranking.group(1))
+
+        # Product rule: when singles/doubles is not explicitly stated,
+        # ranking queries default to singles.
+        if "doubles" in question_lower:
+            ranking_type = "doubles"
+        elif "singles" in question_lower:
+            ranking_type = "singles"
+        else:
+            ranking_type = "singles"
 
     requested_metric = None
 
@@ -1529,17 +1767,24 @@ def answer_structured_question(question):
 
     if intent == "top_rankings":
         requested_date = None
+        period_start = start_date
+        period_end = end_date
 
         if start_date and end_date and start_date == end_date:
             requested_date = start_date
+            period_start = None
+            period_end = None
         elif start_date and not end_date:
             requested_date = start_date
+            period_start = None
 
         answer = answer_top_rankings(
             source,
             ranking_type=ranking_type or "singles",
             limit=limit or 5,
             snapshot_date=requested_date,
+            start_date=period_start,
+            end_date=period_end,
         )
 
         return {
