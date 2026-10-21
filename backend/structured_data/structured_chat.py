@@ -17,8 +17,11 @@ from backend.structured_data.queries import (
     get_players,
 )
 
-OLLAMA_URL = "https://ollama.com/api/chat"
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:31b")
+OLLAMA_URL = os.environ.get(
+    "OLLAMA_URL",
+    "http://localhost:11434/api/generate"
+)
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "mistral")
 
 SUPPORTED_INTENTS = {
     "latest_rankings",
@@ -35,21 +38,9 @@ SUPPORTED_INTENTS = {
 
 
 def ask_ollama(prompt, json_mode=True):
-    api_key = os.environ.get("OLLAMA_API_KEY")
-
-    if not api_key:
-        raise RuntimeError(
-            "OLLAMA_API_KEY is missing from the server environment."
-        )
-
     payload = {
         "model": OLLAMA_MODEL,
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
+        "prompt": prompt,
         "stream": False,
     }
 
@@ -58,10 +49,6 @@ def ask_ollama(prompt, json_mode=True):
 
     response = requests.post(
         OLLAMA_URL,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
         json=payload,
         timeout=120,
     )
@@ -69,7 +56,7 @@ def ask_ollama(prompt, json_mode=True):
     response.raise_for_status()
 
     result = response.json()
-    answer = result.get("message", {}).get("content", "").strip()
+    answer = result.get("response", "").strip()
 
     if not answer:
         raise RuntimeError("Ollama returned an empty response.")
